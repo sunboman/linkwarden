@@ -72,6 +72,7 @@ model User {
   trialEndEmailSent       Boolean               @default(false)
   createdAt               DateTime              @default(now())
   updatedAt               DateTime              @default(now()) @updatedAt
+  readingProgress         ReadingProgress[]
 }
 
 enum Theme {
@@ -189,11 +190,30 @@ model Link {
   aiTagged      Boolean     @default(false)
   indexVersion  Int?
   lastPreserved DateTime?
+  readAt        DateTime?
   importDate    DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @default(now()) @updatedAt
 
+  readingProgress ReadingProgress[]
+
   @@index([collectionId])
+}
+
+model ReadingProgress {
+  id           String   @id @default(cuid())
+  userId       Int
+  linkId       Int
+  percent      Int      @default(0)
+  textQuote    String?
+  textPosition String?
+  cssSelector  String?
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  link         Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, linkId])
 }
 
 model Tag {
