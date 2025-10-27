@@ -100,6 +100,9 @@ Here are some community-maintained projects that are built around Linkwarden:
 
 If you want to contribute, Thanks! Start by choosing one of our [popular suggestions](https://github.com/linkwarden/linkwarden/issues?q=is%3Aissue%20is%3Aopen%20sort%3Areactions-%2B1-desc), just please stay in touch with [@daniel31x13](https://github.com/daniel31x13) before starting.
 
+> [!NOTE]
+> Background archiving now supports a Redis-powered queue. Set `REDIS_URL` in your environment to enable BullMQ-powered processing; otherwise the system will fall back to the legacy polling flow.
+
 # Translations
 
 If you want to help us translate Linkwarden to your language, please check out our [Crowdin page](https://crowdin.com/project/linkwarden) and start translating. We would love to have your help!
