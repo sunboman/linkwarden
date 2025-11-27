@@ -127,6 +127,15 @@ export default function LinkActions({
               </DropdownMenuItem>
             )}
 
+            {(permissions === true || permissions?.canUpdate) && (
+              <DropdownMenuItem
+                onSelect={() => setRefreshPreservationsModal(true)}
+              >
+                <i className="bi-archive" />
+                {t("archive_link")}
+              </DropdownMenuItem>
+            )}
+
             {(permissions === true || permissions?.canDelete) && (
               <>
                 <DropdownMenuSeparator />
