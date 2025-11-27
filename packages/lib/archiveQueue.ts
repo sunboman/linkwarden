@@ -1,34 +1,10 @@
-import { Queue, JobsOptions } from "bullmq";
 import { prisma } from "@linkwarden/prisma";
-
-const redisUrl = process.env.REDIS_URL;
-
-let queue: Queue | null = null;
-
-if (redisUrl) {
-  queue = new Queue("archive", {
-    connection: { url: redisUrl },
-  });
-}
-
-const defaultJobOptions: JobsOptions = {
-  removeOnComplete: true,
-  attempts: 3,
-  backoff: {
-    type: "exponential",
-    delay: 1000,
-  },
-};
+import { Link } from "@linkwarden/prisma/client";
 
 export async function enqueueArchiveJob(linkId: number) {
   if (!linkId || Number.isNaN(linkId)) return;
 
-  if (queue) {
-    await queue.add("archive", { linkId }, defaultJobOptions);
-    return;
-  }
-
-  // Fallback to legacy flow by resetting archival fields.
+  // Reset archival fields to trigger the polling worker
   await prisma.link.update({
     where: { id: linkId },
     data: {
@@ -45,5 +21,5 @@ export async function enqueueArchiveJob(linkId: number) {
 }
 
 export function archiveQueueAvailable() {
-  return Boolean(queue);
+  return false;
 }
