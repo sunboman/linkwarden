@@ -4,7 +4,6 @@ import verifyUser from "@/lib/api/verifyUser";
 import getPermission from "@/lib/api/getPermission";
 import { UsersAndCollections } from "@linkwarden/prisma/client";
 import {
-  archiveQueueAvailable,
   enqueueArchiveJob,
 } from "@linkwarden/lib/archiveQueue";
 
@@ -92,7 +91,6 @@ export default async function markRead(
   return res.status(200).json({
     response: {
       ...updatedLink,
-      archiveQueued: archiveQueueAvailable(),
     },
   });
 }
