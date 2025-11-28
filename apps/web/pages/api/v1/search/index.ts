@@ -25,6 +25,9 @@ export default async function search(
       searchQueryString: req.query.searchQueryString
         ? (req.query.searchQueryString as string)
         : undefined,
+      archived: req.query.archived
+        ? req.query.archived === "true"
+        : undefined,
     };
 
     const { statusCode, ...data } = await searchLinks({

@@ -23,6 +23,7 @@ export interface LinkIncludingShortenedCollectionAndTags
     id: number;
   }[];
   updatedAt?: string;
+  archived?: boolean;
   collection: OptionalExcluding<Collection, "name" | "ownerId">;
 }
 
@@ -94,6 +95,7 @@ export type LinkRequestQuery = {
   tagId?: number;
   pinnedOnly?: boolean;
   searchQueryString?: string;
+  archived?: boolean;
 };
 
 export type PublicLinkRequestQuery = {

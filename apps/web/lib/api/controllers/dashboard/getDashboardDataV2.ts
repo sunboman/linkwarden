@@ -15,6 +15,7 @@ export default async function getDashboardData(userId: number) {
             },
           },
           { pinnedBy: { some: { id: userId } } },
+          { archived: false },
         ],
       },
     }),
@@ -42,49 +43,51 @@ export default async function getDashboardData(userId: number) {
   // Prepare promises for pinned and recent links
   const pinnedLinksPromise = viewPinned
     ? prisma.link.findMany({
-        take: 16,
-        where: {
-          AND: [
-            {
-              collection: {
-                OR: [{ ownerId: userId }, { members: { some: { userId } } }],
-              },
+      take: 16,
+      where: {
+        AND: [
+          {
+            collection: {
+              OR: [{ ownerId: userId }, { members: { some: { userId } } }],
             },
-            { pinnedBy: { some: { id: userId } } },
-          ],
-        },
-        omit: { textContent: true },
-        include: {
-          tags: true,
-          collection: true,
-          pinnedBy: {
-            where: { id: userId },
-            select: { id: true },
           },
+          { pinnedBy: { some: { id: userId } } },
+          { archived: false },
+        ],
+      },
+      omit: { textContent: true },
+      include: {
+        tags: true,
+        collection: true,
+        pinnedBy: {
+          where: { id: userId },
+          select: { id: true },
         },
-        orderBy: order,
-      })
+      },
+      orderBy: order,
+    })
     : Promise.resolve([] as any[]);
 
   const recentLinksPromise = viewRecent
     ? prisma.link.findMany({
-        take: 16,
-        where: {
-          collection: {
-            OR: [{ ownerId: userId }, { members: { some: { userId } } }],
-          },
+      take: 16,
+      where: {
+        collection: {
+          OR: [{ ownerId: userId }, { members: { some: { userId } } }],
         },
-        omit: { textContent: true },
-        include: {
-          tags: true,
-          collection: true,
-          pinnedBy: {
-            where: { id: userId },
-            select: { id: true },
-          },
+        archived: false,
+      },
+      omit: { textContent: true },
+      include: {
+        tags: true,
+        collection: true,
+        pinnedBy: {
+          where: { id: userId },
+          select: { id: true },
         },
-        orderBy: order,
-      })
+      },
+      orderBy: order,
+    })
     : Promise.resolve([] as any[]);
 
   const collectionIds = collectionSections
@@ -102,6 +105,7 @@ export default async function getDashboardData(userId: number) {
                 OR: [{ ownerId: userId }, { members: { some: { userId } } }],
               },
             },
+            { archived: false },
           ],
         },
         take: 16,

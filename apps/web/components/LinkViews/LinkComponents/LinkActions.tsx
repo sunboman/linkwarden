@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   CollectionIncludingMembersAndLinkCount,
   LinkIncludingShortenedCollectionAndTags,
@@ -39,6 +40,7 @@ export default function LinkActions({
   ghost,
 }: Props) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   const permissions = usePermissions(link.collection.id as number);
 
@@ -132,8 +134,37 @@ export default function LinkActions({
                 className="gap-2 cursor-pointer"
                 onSelect={() => setRefreshPreservationsModal(true)}
               >
-                <i className="bi-archive" />
+                <i className="bi-arrow-clockwise" />
                 {t("archive_link")}
+              </DropdownMenuItem>
+            )}
+
+            {(permissions === true || permissions?.canUpdate) && (
+              <DropdownMenuItem
+                className="gap-2 cursor-pointer"
+                onSelect={async () => {
+                  const load = toast.loading(t("sending_request"));
+                  const response = await fetch(
+                    `/api/v1/links/${link.id}/toggle-archive`,
+                    {
+                      method: "PUT",
+                    }
+                  );
+                  const data = await response.json();
+                  toast.dismiss(load);
+                  if (response.ok) {
+                    toast.success(data.response);
+                    refetch();
+                    queryClient.invalidateQueries({ queryKey: ["dashboardData"] });
+                    queryClient.invalidateQueries({ queryKey: ["links"] });
+                    queryClient.invalidateQueries({ queryKey: ["collections"] });
+                  } else {
+                    toast.error(data.response);
+                  }
+                }}
+              >
+                <i className={link.archived ? "bi-box-arrow-up" : "bi-archive"} />
+                {link.archived ? t("unarchive") : t("archive")}
               </DropdownMenuItem>
             )}
 
