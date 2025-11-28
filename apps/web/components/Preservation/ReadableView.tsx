@@ -30,9 +30,10 @@ const bentham = Bentham({ subsets: ["latin"], weight: "400" });
 
 type Props = {
   link: LinkIncludingShortenedCollectionAndTags;
+  initialContent?: string;
 };
 
-export default function ReadableView({ link }: Props) {
+export default function ReadableView({ link, initialContent }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const isPublicRoute = router.pathname.startsWith("/public");
@@ -53,12 +54,17 @@ export default function ReadableView({ link }: Props) {
     color: "yellow" | "red" | "blue" | "green";
     comment?: string;
   } | null>(null);
-  const [linkContent, setLinkContent] = useState("");
+  const [linkContent, setLinkContent] = useState(initialContent || "");
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     async function fetchLinkContent() {
+      if (initialContent) {
+        setLinkContent(initialContent);
+        return;
+      }
+
       if (link?.readable?.startsWith("archives")) {
         const response = await fetch(
           `/api/v1/archives/${link?.id}?format=${ArchivedFormat.readability}&_=${link.updatedAt}`
@@ -69,7 +75,7 @@ export default function ReadableView({ link }: Props) {
       }
     }
     fetchLinkContent();
-  }, [link]);
+  }, [link, initialContent]);
 
   const { data: user } = useUser();
 
@@ -86,6 +92,8 @@ export default function ReadableView({ link }: Props) {
   }, [selectionInfo?.highlightId, linkHighlights, isCommenting]);
 
   const handleMouseUp = (e: React.MouseEvent) => {
+    if ((link.id || 0) <= 0) return;
+
     const containerEl = containerRef.current;
     if (!containerEl) return;
 

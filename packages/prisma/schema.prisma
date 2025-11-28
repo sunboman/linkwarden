@@ -64,6 +64,7 @@ model User {
   archiveAsPDF            Boolean               @default(true)
   archiveAsReadable       Boolean               @default(true)
   archiveAsWaybackMachine Boolean               @default(false)
+  archiveOrgProxyDomains  String[]              @default([])
   isPrivate               Boolean               @default(false)
   referredBy              String?
   dashboardSections       DashboardSection[]
