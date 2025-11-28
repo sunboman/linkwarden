@@ -13,6 +13,17 @@ const openLink = (
   if (user.linksRouteTo === LinksRouteTo.DETAILS) {
     openModal();
   } else if (
+    user.archiveOrgProxyDomains &&
+    user.archiveOrgProxyDomains.some((domain: string) =>
+      link.url?.includes(domain)
+    )
+  ) {
+    // Auto-redirect to Archive.org Readable View
+    window.open(
+      `/preserved/wayback?url=${encodeURIComponent(link.url || "")}`,
+      "_self"
+    );
+  } else if (
     link.readable &&
     link.readable !== "unavailable" &&
     link.readable !== "pending"

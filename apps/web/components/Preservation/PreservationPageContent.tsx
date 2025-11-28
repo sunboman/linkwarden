@@ -5,7 +5,17 @@ import { PreservationContent } from "./PreservationContent";
 import PreservationNavbar from "./PreservationNavbar";
 import { ArchivedFormat } from "@linkwarden/types";
 
-export default function PreservationPageContent() {
+type Props = {
+  customLink?: any;
+  initialContent?: string;
+  customFormat?: number;
+};
+
+export default function PreservationPageContent({
+  customLink,
+  initialContent,
+  customFormat,
+}: Props) {
   const router = useRouter();
   const { links } = useLinks();
 
@@ -15,11 +25,13 @@ export default function PreservationPageContent() {
 
   let isPublicRoute = router.pathname.startsWith("/public") ? true : undefined;
 
-  const { data: link, refetch } = useGetLink({
+  const { data: fetchedLink, refetch } = useGetLink({
     id: Number(router.query.id),
     isPublicRoute,
-    enabled: true,
+    enabled: !customLink,
   });
+
+  const link = customLink || fetchedLink;
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -146,7 +158,10 @@ export default function PreservationPageContent() {
       const st = container.scrollTop;
       // if scrolling down and beyond a small threshold, hide
       if (st - 10 > lastScrollTop.current) {
-        if (Number(router.query.format) === ArchivedFormat.readability)
+        if (
+          (customFormat ?? Number(router.query.format)) ===
+          ArchivedFormat.readability
+        )
           setShowNavbar(false);
       }
       // if scrolling up, show
@@ -156,7 +171,7 @@ export default function PreservationPageContent() {
       lastScrollTop.current = st <= 0 ? 0 : st; // for Mobile or negative
 
       // Update reading progress
-      if (link?.id) {
+      if (link?.id && link.id > 0) {
         const height = container.scrollHeight - container.clientHeight;
         if (height > 0) {
           const percent = (st / height) * 100;
@@ -188,7 +203,7 @@ export default function PreservationPageContent() {
     };
 
     const onUnload = () => {
-      if (link?.id && container) {
+      if (link?.id && link.id > 0 && container) {
         const height = container.scrollHeight - container.clientHeight;
         if (height > 0) {
           const percent = (container.scrollTop / height) * 100;
@@ -217,14 +232,14 @@ export default function PreservationPageContent() {
       // Also save on component unmount (e.g. client-side navigation)
       onUnload();
     };
-  }, [router.query.format, link?.id]);
+  }, [customFormat, router.query.format, link?.id]);
 
   return (
     <div>
       {link?.id && (
         <PreservationNavbar
           link={link}
-          format={Number(router.query.format)}
+          format={customFormat ?? Number(router.query.format)}
           showNavbar={showNavbar}
         />
       )}
@@ -234,7 +249,11 @@ export default function PreservationPageContent() {
         }`}
         ref={scrollRef}
       >
-        <PreservationContent link={link} format={Number(router.query.format)} />
+        <PreservationContent
+          link={link}
+          format={customFormat ?? Number(router.query.format)}
+          initialContent={initialContent}
+        />
       </div>
     </div>
   );

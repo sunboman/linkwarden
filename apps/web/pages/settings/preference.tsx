@@ -419,6 +419,29 @@ export default function Preference() {
               }
             />
           </div>
+
+          <div className="max-w-full mt-4">
+            <p className="mb-2">{t("archive_org_proxy_domains")}</p>
+            <p className="text-sm text-neutral mb-2">
+              {t("archive_org_proxy_domains_desc")}
+            </p>
+            <TagSelection
+              onChange={(e: any) => {
+                setUser({
+                  ...user,
+                  archiveOrgProxyDomains: e.map((e: any) => e.label),
+                });
+                setHasAccountChanges(true);
+              }}
+              defaultValue={
+                account.archiveOrgProxyDomains
+                  ? account.archiveOrgProxyDomains.map((e: string) => ({
+                      label: e,
+                    }))
+                  : []
+              }
+            />
+          </div>
           <div className="max-w-full">
             <p>{t("tag_preservation_rule_label")}</p>
           </div>

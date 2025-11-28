@@ -18,9 +18,14 @@ import getLinkTypeFromFormat from "@linkwarden/lib/getLinkTypeFromFormat";
 type Props = {
   link?: LinkIncludingShortenedCollectionAndTags;
   format: ArchivedFormat;
+  initialContent?: string;
 };
 
-export const PreservationContent: React.FC<Props> = ({ link, format }) => {
+export const PreservationContent: React.FC<Props> = ({
+  link,
+  format,
+  initialContent,
+}) => {
   const router = useRouter();
   const { t } = useTranslation();
 
@@ -73,7 +78,7 @@ export const PreservationContent: React.FC<Props> = ({ link, format }) => {
       case ArchivedFormat.readability:
         return (
           <div className="overflow-auto w-full h-full">
-            <ReadableView link={link} />
+            <ReadableView link={link} initialContent={initialContent} />
           </div>
         );
 

@@ -129,12 +129,26 @@ export default function LinkActions({
 
             {(permissions === true || permissions?.canUpdate) && (
               <DropdownMenuItem
+                className="gap-2 cursor-pointer"
                 onSelect={() => setRefreshPreservationsModal(true)}
               >
                 <i className="bi-archive" />
                 {t("archive_link")}
               </DropdownMenuItem>
             )}
+
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer"
+              onSelect={() => {
+                window.open(
+                  `/preserved/wayback?url=${encodeURIComponent(link.url || "")}`,
+                  "_blank"
+                );
+              }}
+            >
+              <i className="bi-clock-history" />
+              {t("view_archive_org")}
+            </DropdownMenuItem>
 
             {(permissions === true || permissions?.canDelete) && (
               <>

@@ -28,6 +28,7 @@
     "@linkwarden/prisma": "*",
     "@linkwarden/router": "*",
     "@linkwarden/types": "*",
+    "@mozilla/readability": "^0.6.0",
     "@phosphor-icons/core": "^2.1.1",
     "@phosphor-icons/react": "^2.1.7",
     "@radix-ui/react-checkbox": "^1.3.3",
