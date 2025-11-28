@@ -5,7 +5,7 @@ services:
     restart: always
     volumes:
       - ./pgdata:/var/lib/postgresql/data
-  linkwarden:
+  linkreader:
     env_file: .env
     environment:
       - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
@@ -13,7 +13,13 @@ services:
     build: . # uncomment to build from source
     # image: ghcr.io/linkwarden/linkwarden:latest # comment to build from source
     ports:
-      - 3000:3000
+      - ${PORT:-3031}:3000
+    labels:
+      - "homepage.group=Bookmarks"
+      - "homepage.name=Linkreader"
+      - "homepage.icon=linkwarden.png"
+      - "homepage.href=http://localhost:${PORT:-3031}"
+      - "homepage.description=Self-hosted read-it-later app"
     volumes:
       - ./data:/data/data
     depends_on:
