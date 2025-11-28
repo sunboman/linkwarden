@@ -195,6 +195,7 @@ model Link {
   importDate    DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @default(now()) @updatedAt
+  archived      Boolean     @default(false)
 
   readingProgress ReadingProgress[]
 

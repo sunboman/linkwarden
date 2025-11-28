@@ -34,6 +34,7 @@ const useLinks = (params: LinkRequestQuery = {}, auth?: MobileAuth) => {
       tagId: params.tagId,
       pinnedOnly: params.pinnedOnly ?? undefined,
       searchQueryString: params.searchQueryString,
+      archived: params.archived ?? undefined,
     });
   }, [
     sort,
@@ -41,6 +42,7 @@ const useLinks = (params: LinkRequestQuery = {}, auth?: MobileAuth) => {
     params.tagId,
     params.pinnedOnly,
     params.searchQueryString,
+    params.archived,
   ]);
 
   const query = useFetchLinks(queryString, auth);

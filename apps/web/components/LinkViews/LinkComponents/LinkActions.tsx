@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { LinkIncludingShortenedCollectionAndTags } from "@linkwarden/types";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  CollectionIncludingMembersAndLinkCount,
+  LinkIncludingShortenedCollectionAndTags,
+} from "@linkwarden/types";
 import usePermissions from "@/hooks/usePermissions";
 import DeleteLinkModal from "@/components/ModalContent/DeleteLinkModal";
 import { useDeleteLink, useGetLink } from "@linkwarden/router/links";
@@ -36,6 +40,7 @@ export default function LinkActions({
   className,
   ghost,
 }: Props) {
+  const queryClient = useQueryClient();
   const permissions = usePermissions(link.collection.id as number);
 
   const router = useRouter();
@@ -128,8 +133,37 @@ export default function LinkActions({
                 className="gap-2 cursor-pointer"
                 onSelect={() => setRefreshPreservationsModal(true)}
               >
-                <i className="bi-archive" />
+                <i className="bi-arrow-clockwise" />
                 {t("archive_link")}
+              </DropdownMenuItem>
+            )}
+
+            {(permissions === true || permissions?.canUpdate) && (
+              <DropdownMenuItem
+                className="gap-2 cursor-pointer"
+                onSelect={async () => {
+                  const load = toast.loading(t("sending_request"));
+                  const response = await fetch(
+                    `/api/v1/links/${link.id}/toggle-archive`,
+                    {
+                      method: "PUT",
+                    }
+                  );
+                  const data = await response.json();
+                  toast.dismiss(load);
+                  if (response.ok) {
+                    toast.success(data.response);
+                    refetch();
+                    queryClient.invalidateQueries({ queryKey: ["dashboardData"] });
+                    queryClient.invalidateQueries({ queryKey: ["links"] });
+                    queryClient.invalidateQueries({ queryKey: ["collections"] });
+                  } else {
+                    toast.error(data.response);
+                  }
+                }}
+              >
+                <i className={link.archived ? "bi-box-arrow-up" : "bi-archive"} />
+                {link.archived ? t("unarchive") : t("archive")}
               </DropdownMenuItem>
             )}
 

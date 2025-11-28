@@ -179,6 +179,13 @@ export default function Sidebar({
             active={active === `/tags`}
             sidebarIsCollapsed={sidebarIsCollapsed}
           />
+          <SidebarHighlightLink
+            title={t("archive")}
+            href={`/archive`}
+            icon={"bi-archive"}
+            active={active === `/archive`}
+            sidebarIsCollapsed={sidebarIsCollapsed}
+          />
         </div>
 
         {sidebarIsCollapsed && (

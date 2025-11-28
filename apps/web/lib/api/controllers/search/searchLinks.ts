@@ -98,21 +98,22 @@ export default async function searchLinks({
         AND: [
           ...(userId
             ? [
-                {
-                  collection: {
-                    OR: [
-                      { ownerId: userId },
-                      {
-                        members: {
-                          some: { userId },
-                        },
+              {
+                collection: {
+                  OR: [
+                    { ownerId: userId },
+                    {
+                      members: {
+                        some: { userId },
                       },
-                    ],
-                  },
+                    },
+                  ],
                 },
-              ]
+              },
+            ]
             : []),
           ...collectionCondition,
+          { archived: query.archived ?? false },
           {
             OR: [
               ...tagCondition,
@@ -131,9 +132,9 @@ export default async function searchLinks({
         collection: true,
         pinnedBy: userId
           ? {
-              where: { id: userId },
-              select: { id: true },
-            }
+            where: { id: userId },
+            select: { id: true },
+          }
           : undefined,
       },
       orderBy: order,
@@ -197,21 +198,22 @@ export default async function searchLinks({
       AND: [
         ...(userId
           ? [
-              {
-                collection: {
-                  OR: [
-                    { ownerId: userId },
-                    {
-                      members: {
-                        some: { userId },
-                      },
+            {
+              collection: {
+                OR: [
+                  { ownerId: userId },
+                  {
+                    members: {
+                      some: { userId },
                     },
-                  ],
-                },
+                  },
+                ],
               },
-            ]
+            },
+          ]
           : []),
         ...collectionCondition,
+        { archived: query.archived ?? false },
         {
           OR: [
             ...tagCondition,
@@ -233,9 +235,9 @@ export default async function searchLinks({
       collection: true,
       pinnedBy: userId
         ? {
-            where: { id: userId },
-            select: { id: true },
-          }
+          where: { id: userId },
+          select: { id: true },
+        }
         : undefined,
     },
     orderBy: order,
