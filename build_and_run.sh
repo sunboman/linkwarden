@@ -18,7 +18,7 @@ export PORT=$PORT
 
 if [ "$BUILD" = true ]; then
   echo "Building images..."
-  docker compose build
+  docker compose build --no-cache
 fi
 
 # Generate .env if missing
