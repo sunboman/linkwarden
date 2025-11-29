@@ -13,6 +13,7 @@ export interface LinkIncludingShortenedCollectionAndTags
     | "updatedAt"
     | "lastPreserved"
     | "importDate"
+    | "archived"
   > {
   id?: number;
   createdAt?: string;

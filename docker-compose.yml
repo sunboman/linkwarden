@@ -18,7 +18,7 @@ services:
       - "homepage.group=Bookmarks"
       - "homepage.name=Linkreader"
       - "homepage.icon=linkwarden.png"
-      - "homepage.href=http://localhost:${PORT:-3031}"
+      - "homepage.href=http://${HOST}:${PORT:-3031}"
       - "homepage.description=Self-hosted read-it-later app"
     volumes:
       - ./data:/data/data

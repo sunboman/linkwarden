@@ -15,6 +15,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 export PORT=$PORT
+export HOST=${HOST:-$(hostname)}
 
 if [ "$BUILD" = true ]; then
   echo "Building images..."
