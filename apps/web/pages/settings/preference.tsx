@@ -211,6 +211,13 @@ const Page: NextPageWithLayout = () => {
                 textColor: "text-black",
                 activeColor: "text-primary",
               },
+              {
+                theme: "auto",
+                icon: "bi-circle-half",
+                bgColor: "bg-base-200",
+                textColor: "text-neutral",
+                activeColor: "text-primary",
+              },
             ].map(({ theme, icon, bgColor, textColor, activeColor }) => (
               <div
                 key={theme}

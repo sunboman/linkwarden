@@ -5,11 +5,13 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: number;
+      theme?: string;
     };
   }
 
   interface User {
     id: number;
+    theme?: string;
   }
 }
 
@@ -20,5 +22,6 @@ declare module "next-auth/jwt" {
     iat: number;
     exp: number;
     jti: string;
+    theme?: string;
   }
 }

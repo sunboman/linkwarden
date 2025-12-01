@@ -43,7 +43,30 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
       meta.content = "width=device-width, initial-scale=1, maximum-scale=1";
       document.getElementsByTagName("head")[0].appendChild(meta);
     }
-  }, []);
+
+    const userTheme = pageProps.session?.user?.theme;
+
+    if (userTheme === "auto") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = (e: MediaQueryListEvent) => {
+        document.documentElement.setAttribute(
+          "data-theme",
+          e.matches ? "dark" : "light"
+        );
+      };
+
+      // Set initial theme
+      document.documentElement.setAttribute(
+        "data-theme",
+        mediaQuery.matches ? "dark" : "light"
+      );
+
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    } else if (userTheme) {
+      document.documentElement.setAttribute("data-theme", userTheme);
+    }
+  }, [pageProps.session?.user?.theme]);
 
   return (
     <QueryClientProvider client={queryClient}>

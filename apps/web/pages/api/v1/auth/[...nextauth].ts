@@ -99,18 +99,18 @@ if (process.env.NEXT_PUBLIC_CREDENTIALS_ENABLED !== "false") {
         const user = await prisma.user.findFirst({
           where: emailEnabled
             ? {
-                OR: [
-                  {
-                    username: username.toLowerCase(),
-                  },
-                  {
-                    email: username?.toLowerCase(),
-                  },
-                ],
-              }
+              OR: [
+                {
+                  username: username.toLowerCase(),
+                },
+                {
+                  email: username?.toLowerCase(),
+                },
+              ],
+            }
             : {
-                username: username.toLowerCase(),
-              },
+              username: username.toLowerCase(),
+            },
         });
 
         if (!user) throw Error("Invalid credentials.");
@@ -660,17 +660,14 @@ if (process.env.NEXT_PUBLIC_GITLAB_ENABLED === "true") {
       clientId: process.env.GITLAB_CLIENT_ID!,
       clientSecret: process.env.GITLAB_CLIENT_SECRET!,
       authorization: {
-        url: `${
-          process.env.GITLAB_AUTH_URL || "https://gitlab.com"
-        }/oauth/authorize`,
+        url: `${process.env.GITLAB_AUTH_URL || "https://gitlab.com"
+          }/oauth/authorize`,
         params: { scope: "read_user" },
       },
-      token: `${
-        process.env.GITLAB_AUTH_URL || "https://gitlab.com"
-      }/oauth/token`,
-      userinfo: `${
-        process.env.GITLAB_AUTH_URL || "https://gitlab.com"
-      }/api/v4/user`,
+      token: `${process.env.GITLAB_AUTH_URL || "https://gitlab.com"
+        }/oauth/token`,
+      userinfo: `${process.env.GITLAB_AUTH_URL || "https://gitlab.com"
+        }/api/v4/user`,
     })
   );
 
@@ -1301,7 +1298,7 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
               STRIPE_SECRET_KEY &&
               parentSubscription?.quantity &&
               verifiedChildUsersCount + 2 > // add current user and the admin
-                parentSubscription.quantity
+              parentSubscription.quantity
             ) {
               // Add seat if the user count exceeds the subscription limit
               await updateSeats(
@@ -1361,6 +1358,14 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
         token.sub = token.sub ? Number(token.sub) : undefined;
         if (trigger === "signIn" || trigger === "signUp")
           token.id = user?.id as number;
+
+        if (!token.theme || trigger === "signIn") {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.id },
+            select: { theme: true },
+          });
+          if (dbUser) token.theme = dbUser.theme;
+        }
 
         if (trigger === "signUp") {
           const userExists = await prisma.user.findUnique({
@@ -1437,6 +1442,7 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
       },
       async session({ session, token }) {
         session.user.id = token.id;
+        session.user.theme = token.theme;
 
         if (STRIPE_SECRET_KEY) {
           const user = await prisma.user.findUnique({

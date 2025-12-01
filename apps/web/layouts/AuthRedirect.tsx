@@ -69,7 +69,7 @@ export default function AuthRedirect({ children }: Props) {
         isLoggedIn &&
         !routes.some((e) => router.pathname.startsWith(e.path) && e.isProtected)
       ) {
-        redirectTo("/dashboard");
+        redirectTo("/links");
       } else if (
         isUnauthenticated &&
         routes.some((e) => router.pathname.startsWith(e.path) && e.isProtected)
