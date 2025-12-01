@@ -31,11 +31,13 @@ import {
 } from "@/components/ui/tooltip";
 import { useUser } from "@linkwarden/router/user";
 import { Separator } from "@/components/ui/separator";
+import useEffectiveTheme from "@/hooks/useEffectiveTheme";
 
 export default function PublicCollections() {
   const { t } = useTranslation();
 
   const { data: user } = useUser();
+  const effectiveTheme = useEffectiveTheme();
 
   const router = useRouter();
 
@@ -104,8 +106,8 @@ export default function PublicCollections() {
         className="h-96"
         style={{
           backgroundImage: `linear-gradient(${collection?.color}30 10%, ${
-            user?.theme === "light" ? "#f3f4f6" : "#262626"
-          } 13rem, ${user?.theme === "light" ? "#ffffff" : "#171717"} 100%)`,
+            effectiveTheme === "light" ? "#f3f4f6" : "#262626"
+          } 13rem, ${effectiveTheme === "light" ? "#ffffff" : "#171717"} 100%)`,
         }}
       >
         {collection && (

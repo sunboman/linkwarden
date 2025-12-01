@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import useEffectiveTheme from "@/hooks/useEffectiveTheme";
 
 export default function Sidebar({
   className,
@@ -48,6 +49,7 @@ export default function Sidebar({
   const router = useRouter();
 
   const { data: user } = useUser();
+  const effectiveTheme = useEffectiveTheme();
 
   useEffect(() => {
     localStorage.setItem("tagDisclosure", tagDisclosure ? "true" : "false");
@@ -92,7 +94,7 @@ export default function Sidebar({
               onClick={() => router.push("/dashboard")}
               priority
             />
-          ) : user?.theme === "light" ? (
+          ) : effectiveTheme === "light" ? (
             <Image
               src={"/linkwarden_light.png"}
               width={563}

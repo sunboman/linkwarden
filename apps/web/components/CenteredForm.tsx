@@ -3,6 +3,7 @@ import Link from "next/link";
 import React, { ReactNode } from "react";
 import { Trans } from "next-i18next";
 import { useUser } from "@linkwarden/router/user";
+import useEffectiveTheme from "@/hooks/useEffectiveTheme";
 
 interface Props {
   text?: string;
@@ -16,6 +17,7 @@ export default function CenteredForm({
   "data-testid": dataTestId,
 }: Props) {
   const { data: user } = useUser();
+  const effectiveTheme = useEffectiveTheme();
 
   return (
     <div
@@ -23,7 +25,7 @@ export default function CenteredForm({
       data-testid={dataTestId}
     >
       <div className="m-auto flex flex-col gap-2 w-full">
-        {user?.theme === "light" ? (
+        {effectiveTheme === "light" ? (
           <Image
             src={"/linkwarden_light.png"}
             width={640}
