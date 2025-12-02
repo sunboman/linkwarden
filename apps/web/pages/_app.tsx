@@ -1,4 +1,4 @@
-import React, { ReactElement, ReactNode, useEffect } from "react";
+import React, { ReactElement, ReactNode, useEffect, useState } from "react";
 import "@/styles/globals.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import { SessionProvider } from "next-auth/react";
@@ -35,6 +35,7 @@ type AppPropsWithLayout = AppProps<PageProps> & {
 
 function App({ Component, pageProps }: AppPropsWithLayout) {
   const getLayout = Component.getLayout ?? ((page) => page);
+  const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
     if (isPWA()) {
@@ -49,22 +50,27 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
     if (userTheme === "auto") {
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
       const handleChange = (e: MediaQueryListEvent) => {
+        const newIsDark = e.matches;
+        setIsDark(newIsDark);
         document.documentElement.setAttribute(
           "data-theme",
-          e.matches ? "dark" : "light"
+          newIsDark ? "dark" : "light"
         );
       };
 
       // Set initial theme
+      const isSystemDark = mediaQuery.matches;
+      setIsDark(isSystemDark);
       document.documentElement.setAttribute(
         "data-theme",
-        mediaQuery.matches ? "dark" : "light"
+        isSystemDark ? "dark" : "light"
       );
 
       mediaQuery.addEventListener("change", handleChange);
       return () => mediaQuery.removeEventListener("change", handleChange);
     } else if (userTheme) {
       document.documentElement.setAttribute("data-theme", userTheme);
+      setIsDark(userTheme === "dark");
     }
   }, [pageProps.session?.user?.theme]);
 
@@ -82,7 +88,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
           <link
             rel="apple-touch-icon"
             sizes="180x180"
-            href="/apple-touch-icon.png"
+            href={isDark ? "/apple-touch-icon-dark.png?v=5" : "/apple-touch-icon.png?v=5"}
           />
           <link
             rel="icon"
