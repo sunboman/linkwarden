@@ -29,9 +29,16 @@ type Props = {
   link: LinkIncludingShortenedCollectionAndTags;
   format?: ArchivedFormat;
   className?: string;
+  onArchive?: () => void;
 };
 
-const PreservationNavbar = ({ link, format, className }: Props) => {
+const PreservationNavbar = ({
+  link,
+  format,
+  showNavbar,
+  className,
+  onArchive,
+}: Props & { showNavbar?: boolean }) => {
   const { data: collections = [] } = useCollections();
 
   const [collection, setCollection] =
@@ -219,6 +226,7 @@ const PreservationNavbar = ({ link, format, className }: Props) => {
             linkModal={linkModal}
             setLinkModal={(e) => setLinkModal(e)}
             ghost
+            onArchive={onArchive}
           />
         </div>
       </div>

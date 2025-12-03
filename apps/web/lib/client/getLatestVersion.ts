@@ -1,24 +1,24 @@
 export default async function getLatestVersion(setShowAnnouncement: Function) {
-  const announcementId = localStorage.getItem("announcementId");
-  const announcementMessage = localStorage.getItem("announcementMessage");
+  try {
+    const announcementId = localStorage.getItem("announcementId");
 
-  const response = await fetch(
-    `https://linkwarden.app/blog/latest-announcement.json`
-  );
+    const response = await fetch(
+      `https://blog.linkwarden.app/latest-announcement.json`
+    );
 
-  const data = await response.json();
+    if (!response.ok) {
+      return;
+    }
 
-  const latestAnnouncement = data.id;
-  const latestMessage = data.message;
+    const data = await response.json();
 
-  if (
-    announcementId != latestAnnouncement ||
-    announcementMessage != latestMessage
-  ) {
-    setShowAnnouncement(true);
-    if (latestAnnouncement)
+    const latestAnnouncement = data.id;
+
+    if (announcementId !== latestAnnouncement) {
+      setShowAnnouncement(true);
       localStorage.setItem("announcementId", latestAnnouncement);
-    if (latestMessage)
-      localStorage.setItem("announcementMessage", latestMessage);
+    }
+  } catch (error) {
+    console.error("Failed to fetch latest announcement:", error);
   }
 }

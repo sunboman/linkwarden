@@ -9,12 +9,14 @@ type Props = {
   customLink?: any;
   initialContent?: string;
   customFormat?: number;
+  onArchive?: () => void;
 };
 
 export default function PreservationPageContent({
   customLink,
   initialContent,
   customFormat,
+  onArchive,
 }: Props) {
   const router = useRouter();
   const { links } = useLinks();
@@ -241,6 +243,7 @@ export default function PreservationPageContent({
           link={link}
           format={customFormat ?? Number(router.query.format)}
           showNavbar={showNavbar}
+          onArchive={onArchive}
         />
       )}
       <div

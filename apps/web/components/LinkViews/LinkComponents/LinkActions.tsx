@@ -39,7 +39,8 @@ export default function LinkActions({
   setLinkModal,
   className,
   ghost,
-}: Props) {
+  onArchive,
+}: Props & { onArchive?: () => void }) {
   const queryClient = useQueryClient();
   const permissions = usePermissions(link.collection.id as number);
 
@@ -157,6 +158,10 @@ export default function LinkActions({
                     queryClient.invalidateQueries({ queryKey: ["dashboardData"] });
                     queryClient.invalidateQueries({ queryKey: ["links"] });
                     queryClient.invalidateQueries({ queryKey: ["collections"] });
+                    
+                    if (!link.archived && onArchive) {
+                      onArchive();
+                    }
                   } else {
                     toast.error(data.response);
                   }
