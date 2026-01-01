@@ -62,7 +62,7 @@ const Page: NextPageWithLayout = () => {
     const tag = tags.find((e: any) => e.id === Number(router.query.id));
 
     if (tags.length > 0 && !tag?.id) {
-      router.push("/dashboard");
+      router.push("/links");
       return;
     }
 

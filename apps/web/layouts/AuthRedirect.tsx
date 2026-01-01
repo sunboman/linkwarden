@@ -47,7 +47,6 @@ export default function AuthRedirect({ children }: Props) {
       { path: "/auth/reset-password", isProtected: false },
       { path: "/", isProtected: false },
       { path: "/subscribe", isProtected: true },
-      { path: "/dashboard", isProtected: true },
       { path: "/settings", isProtected: true },
       { path: "/collections", isProtected: true },
       { path: "/links", isProtected: true },

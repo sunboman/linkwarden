@@ -95,7 +95,7 @@ const PreservationNavbar = ({
       >
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild>
-            <Link href={`/dashboard`}>
+            <Link href={`/links`}>
               <i className="bi-chevron-left text-lg text-neutral" />
             </Link>
           </Button>

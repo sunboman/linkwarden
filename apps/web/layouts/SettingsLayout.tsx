@@ -53,7 +53,7 @@ export default function SettingsLayout({ children }: Props) {
               size="icon"
               className="text-neutral"
             >
-              <Link href="/dashboard">
+              <Link href="/links">
                 <i className="bi-chevron-left text-xl" />
               </Link>
             </Button>

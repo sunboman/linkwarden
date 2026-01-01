@@ -53,7 +53,7 @@ export default function Admin() {
       <div className="flex sm:flex-row flex-col justify-between gap-2">
         <div className="gap-2 inline-flex items-center">
           <Button variant="ghost" size="icon">
-            <Link href="/dashboard" className="text-neutral">
+            <Link href="/links" className="text-neutral">
               <i className="bi-chevron-left text-xl"></i>
             </Link>
           </Button>

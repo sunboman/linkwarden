@@ -44,7 +44,7 @@ export default function MemberOnboarding() {
         },
         {
           onSuccess: (data) => {
-            router.push("/dashboard");
+            router.push("/links");
           },
           onSettled: (data, error) => {
             setSubmitLoader(false);

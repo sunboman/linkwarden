@@ -37,7 +37,7 @@ export default async function paymentCheckout(email: string, priceId: string) {
     subscription?.parentSubscription?.active
   ) {
     // To prevent users from creating multiple subscriptions
-    return { response: "/dashboard", status: 200 };
+    return { response: "/links", status: 200 };
   }
 
   const listByEmail = await stripe.customers.list({
@@ -60,34 +60,34 @@ export default async function paymentCheckout(email: string, priceId: string) {
     ],
     mode: "subscription",
     customer_email: isExistingCustomer ? undefined : email.toLowerCase(),
-    success_url: `${process.env.BASE_URL}/dashboard`,
+    success_url: `${process.env.BASE_URL}/links`,
     cancel_url: `${process.env.BASE_URL}/login`,
     ...(REQUIRE_CC
       ? {
-          subscription_data: {
-            trial_period_days: NEXT_PUBLIC_TRIAL_PERIOD_DAYS
-              ? Number(NEXT_PUBLIC_TRIAL_PERIOD_DAYS)
-              : 14,
-          },
-        }
+        subscription_data: {
+          trial_period_days: NEXT_PUBLIC_TRIAL_PERIOD_DAYS
+            ? Number(NEXT_PUBLIC_TRIAL_PERIOD_DAYS)
+            : 14,
+        },
+      }
       : daysLeft > 0
         ? {
-            subscription_data: {
-              trial_period_days: daysLeft,
-            },
-          }
+          subscription_data: {
+            trial_period_days: daysLeft,
+          },
+        }
         : {}),
     ...(MANAGED_PAYMENTS_ENABLED
       ? {
-          managed_payments: {
-            enabled: true,
-          },
-        }
+        managed_payments: {
+          enabled: true,
+        },
+      }
       : {
-          automatic_tax: {
-            enabled: true,
-          },
-        }),
+        automatic_tax: {
+          enabled: true,
+        },
+      }),
   });
 
   return { response: session.url, status: 200 };

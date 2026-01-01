@@ -32,7 +32,7 @@ export default function MobileNavigation({}: Props) {
             isIphone() && isPWA() ? "pb-5" : ""
           } border-solid border-t-neutral-content border-t`}
         >
-          <MobileNavigationButton href={`/dashboard`} icon={"bi-house"} />
+          <MobileNavigationButton href={`/links`} icon={"bi-link-45deg"} />
           <MobileNavigationButton
             href={`/links/pinned`}
             icon={"bi-pin-angle"}

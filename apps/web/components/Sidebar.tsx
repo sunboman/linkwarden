@@ -91,7 +91,7 @@ export default function Sidebar({
               height={640}
               alt="Linkwarden Icon"
               className="h-8 w-auto cursor-pointer"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/links")}
               priority
             />
           ) : effectiveTheme === "light" ? (
@@ -101,7 +101,7 @@ export default function Sidebar({
               height={136}
               alt="Linkwarden"
               className="h-9 w-auto cursor-pointer"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/links")}
               priority
             />
           ) : (
@@ -111,7 +111,7 @@ export default function Sidebar({
               height={136}
               alt="Linkwarden"
               className="h-9 w-auto cursor-pointer"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/links")}
               priority
             />
           )}
@@ -146,13 +146,6 @@ export default function Sidebar({
             sidebarIsCollapsed ? "my-auto justify-center gap-3" : "gap-1"
           )}
         >
-          <SidebarHighlightLink
-            title={t("dashboard")}
-            href={`/dashboard`}
-            icon={"bi-house"}
-            active={active === `/dashboard`}
-            sidebarIsCollapsed={sidebarIsCollapsed}
-          />
           <SidebarHighlightLink
             title={t("links")}
             href={`/links`}

@@ -44,7 +44,7 @@ export default function Subscribe() {
       user?.id &&
       (user?.subscription?.active || user?.parentSubscription?.active)
     )
-      router.push("/dashboard");
+      router.push("/links");
   }, [session.status, user]);
 
   async function submit() {
@@ -187,7 +187,7 @@ export default function Subscribe() {
               className=""
               variant="metal"
               size="full"
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/links")}
             >
               {t("subscribe_later")}
             </Button>

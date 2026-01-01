@@ -76,7 +76,7 @@ export default function PublicCollections() {
     if (router.query.id) {
       getPublicCollectionData(Number(router.query.id)).then((res) => {
         if (res.status === 400) {
-          router.push("/dashboard");
+          router.push("/links");
         } else {
           setCollection(res.response);
         }
