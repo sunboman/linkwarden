@@ -19,6 +19,7 @@ module.exports = {
           success: "#22c55e",
           warning: "#facc15",
           error: "#dc2626",
+          "--font-serif": '"Lora", serif',
         },
       },
       {
@@ -35,6 +36,7 @@ module.exports = {
           success: "#00b17d",
           warning: "#eac700",
           error: "#f1293c",
+          "--font-serif": '"Lora", serif',
         },
       },
     ],
@@ -57,6 +59,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        serif: ["Lora", "serif"],
+      },
       colors: {
         border: daisyuiColorObj["neutral-content"],
         input: daisyuiColorObj["base-content"],

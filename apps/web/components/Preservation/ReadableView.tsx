@@ -22,11 +22,13 @@ import { Highlight } from "@linkwarden/prisma/client";
 import { useUser } from "@linkwarden/router/user";
 import { Caveat } from "next/font/google";
 import { Bentham } from "next/font/google";
+import { Lora } from "next/font/google";
 import { Separator } from "../ui/separator";
 import { Button } from "../ui/button";
 
 const caveat = Caveat({ subsets: ["latin"] });
 const bentham = Bentham({ subsets: ["latin"], weight: "400" });
+const lora = Lora({ subsets: ["latin"] });
 
 type Props = {
   link: LinkIncludingShortenedCollectionAndTags;
@@ -302,6 +304,8 @@ export default function ReadableView({ link, initialContent }: Props) {
         return caveat.style.fontFamily;
       } else if (user.readableFontFamily === "bentham") {
         return bentham.style.fontFamily;
+      } else if (user.readableFontFamily === "lora") {
+        return lora.style.fontFamily;
       } else return user.readableFontFamily;
     };
 

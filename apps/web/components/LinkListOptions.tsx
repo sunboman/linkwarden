@@ -32,6 +32,7 @@ type Props = {
   editMode?: boolean;
   setEditMode?: (mode: boolean) => void;
   links: LinkIncludingShortenedCollectionAndTags[];
+  onRefresh?: () => void;
 };
 
 const LinkListOptions = ({
@@ -44,6 +45,7 @@ const LinkListOptions = ({
   editMode,
   setEditMode,
   links,
+  onRefresh,
 }: Props) => {
   const { selectedIds, setSelected, clearSelected, selectionCount } =
     useLinkStore();
@@ -147,6 +149,24 @@ const LinkListOptions = ({
               t={t}
             />
             <ViewDropdown viewMode={viewMode} setViewMode={setViewMode} />
+            {onRefresh && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={onRefresh}
+                    >
+                      <i className="bi-arrow-clockwise text-neutral text-xl" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t("refresh")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         </div>
       </div>

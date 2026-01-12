@@ -15,10 +15,12 @@ import { FitWidth, FormatLineSpacing, FormatSize } from "@/components/ui/icons";
 import { useUpdateUserPreference, useUser } from "@linkwarden/router/user";
 import { Caveat } from "next/font/google";
 import { Bentham } from "next/font/google";
+import { Lora } from "next/font/google";
 import { useTranslation } from "next-i18next";
 
 const caveat = Caveat({ subsets: ["latin"] });
 const bentham = Bentham({ subsets: ["latin"], weight: "400" });
+const lora = Lora({ subsets: ["latin"] });
 
 const fontSizes = [
   "12px",
@@ -99,7 +101,9 @@ const TextStyleDropdown = (props: Props) => {
                       ? caveat.style.fontFamily
                       : data?.readableFontFamily === "bentham"
                         ? bentham.style.fontFamily
-                        : data?.readableFontFamily) || "sans-serif",
+                        : data?.readableFontFamily === "lora"
+                          ? lora.style.fontFamily
+                          : data?.readableFontFamily) || "sans-serif",
                 }}
               >
                 {data?.readableFontFamily?.replace("-", " ")}
@@ -175,6 +179,17 @@ const TextStyleDropdown = (props: Props) => {
               }}
             >
               <span className={bentham.className}>Bentham</span>
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              style={{ fontFamily: lora.style.fontFamily }}
+              checked={data?.readableFontFamily === "lora"}
+              onSelect={() => {
+                updateUserPreference.mutate({
+                  readableFontFamily: "lora",
+                });
+              }}
+            >
+              <span className={lora.className}>Lora</span>
             </DropdownMenuCheckboxItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
