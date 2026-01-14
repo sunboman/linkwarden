@@ -260,6 +260,13 @@ const PreservationNavbar = ({
         </DropdownMenu>
 
         <div className="flex gap-2 items-center text-neutral">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => window.open(link.url || "", "_blank")}
+          >
+            <i className="bi-box-arrow-up-right text-xl" title={t("open_original")} />
+          </Button>
           <ArchiveButton link={link} t={t} onArchive={onArchive} />
           <LinkActions
             link={link}
