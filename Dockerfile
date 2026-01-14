@@ -35,6 +35,8 @@ RUN --mount=type=cache,sharing=locked,target=/usr/local/share/.cache/yarn \
         python3 \
         curl \
         ca-certificates && \
+    # Enable corepack for Yarn 4.x support
+    corepack enable && \
     yarn install --network-timeout 10000000 && \
     # Cleanup build tools to reduce image size
     apt-get purge -y build-essential python3 && \
