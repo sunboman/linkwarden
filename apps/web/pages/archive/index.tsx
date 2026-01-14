@@ -42,7 +42,6 @@ export default function Index() {
 
   return (
     <DragNDrop
-      links={links}
       activeLink={activeLink}
       setActiveLink={setActiveLink}
     >
@@ -78,7 +77,6 @@ export default function Index() {
             editMode={editMode}
             links={links}
             layout={viewMode}
-            placeholderCount={1}
             useData={data}
           />
         </div>

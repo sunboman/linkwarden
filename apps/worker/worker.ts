@@ -1,4 +1,4 @@
-import { startIndexing } from "./workers/linkIndexing";
+// import { startIndexing } from "./workers/linkIndexing"; // MeiliSearch disabled
 import { linkProcessing } from "./workers/linkProcessing";
 import { migrationWorker } from "./workers/migrationWorker";
 import { startRSSPolling } from "./workers/rssPolling";
@@ -14,7 +14,7 @@ async function init() {
   console.log("\x1b[34m%s\x1b[0m", "Initializing the worker...");
   startRSSPolling();
   linkProcessing(workerIntervalInSeconds);
-  startIndexing(workerIntervalInSeconds);
+  // startIndexing(workerIntervalInSeconds); // MeiliSearch disabled
   trialEndEmailWorker();
 }
 

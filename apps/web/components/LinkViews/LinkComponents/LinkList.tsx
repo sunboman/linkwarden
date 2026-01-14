@@ -25,12 +25,21 @@ import LinkFormats from "./LinkFormats";
 import openLink from "@/lib/client/openLink";
 import { useDraggable } from "@dnd-kit/core";
 import useMediaQuery from "@/hooks/useMediaQuery";
+import { TFunction } from "i18next";
 
 type Props = {
   link: LinkIncludingShortenedCollectionAndTags;
   count: number;
   className?: string;
   editMode?: boolean;
+  // Props passed from Links.tsx (optional since component can use hooks internally)
+  collection?: CollectionIncludingMembersAndLinkCount;
+  isPublicRoute?: boolean;
+  t?: TFunction<"translation", undefined>;
+  disableDraggable?: boolean;
+  user?: any;
+  isSelected?: boolean;
+  toggleSelected?: (id: number) => void;
 };
 
 export default function LinkCardCompact({ link, editMode }: Props) {
@@ -48,7 +57,7 @@ export default function LinkCardCompact({ link, editMode }: Props) {
   const { data: collections = [] } = useCollections();
 
   const { data: user } = useUser();
-  const { setSelectedLinks, selectedLinks } = useLinkStore();
+  const { isSelected, toggleSelected, clearSelected } = useLinkStore();
 
   const {
     settings: { show },
@@ -58,23 +67,15 @@ export default function LinkCardCompact({ link, editMode }: Props) {
 
   useEffect(() => {
     if (!editMode) {
-      setSelectedLinks([]);
+      clearSelected();
     }
   }, [editMode]);
 
   const handleCheckboxClick = (
     link: LinkIncludingShortenedCollectionAndTags
   ) => {
-    const linkIndex = selectedLinks.findIndex(
-      (selectedLink) => selectedLink.id === link.id
-    );
-
-    if (linkIndex !== -1) {
-      const updatedLinks = [...selectedLinks];
-      updatedLinks.splice(linkIndex, 1);
-      setSelectedLinks(updatedLinks);
-    } else {
-      setSelectedLinks([...selectedLinks, link]);
+    if (link.id) {
+      toggleSelected(link.id);
     }
   };
 
@@ -95,9 +96,7 @@ export default function LinkCardCompact({ link, editMode }: Props) {
 
   const permissions = usePermissions(collection?.id as number);
 
-  const selectedStyle = selectedLinks.some(
-    (selectedLink) => selectedLink.id === link.id
-  )
+  const selectedStyle = link.id && isSelected(link.id)
     ? "border border-primary bg-base-300"
     : "border-transparent";
 
@@ -166,7 +165,7 @@ export default function LinkCardCompact({ link, editMode }: Props) {
               <div className="flex items-center gap-x-3 text-neutral flex-wrap">
                 {show.link && <LinkTypeBadge link={link} />}
                 {show.collection && (
-                  <LinkCollection link={link} collection={collection} />
+                  <LinkCollection link={link} collection={collection} isPublicRoute={!!isPublic} />
                 )}
                 {show.date && <LinkDate link={link} />}
               </div>
@@ -176,7 +175,7 @@ export default function LinkCardCompact({ link, editMode }: Props) {
         {!isPublic && <LinkPin link={link} />}
         <LinkActions
           link={link}
-          collection={collection}
+          t={t}
           linkModal={linkModal}
           setLinkModal={(e) => setLinkModal(e)}
           className="absolute top-3 right-3 group-hover:opacity-100 group-focus-within:opacity-100 opacity-0 duration-100 text-neutral z-20"

@@ -17,9 +17,24 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Enable corepack for Yarn 4.x support (must be before any yarn commands)
 RUN corepack enable
 
+# Install build tools for native modules and runtime dependencies
+RUN set -eux && \
+    apt-get update && \
+    apt-get install -yqq --no-install-recommends \
+        build-essential \
+        python3 \
+        curl \
+        ca-certificates && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN mkdir /data
 
 WORKDIR /data
+
+# Copy yarn configuration first
+COPY .yarnrc.yml ./
+COPY .yarn ./.yarn
 
 COPY ./apps/web/package.json ./apps/web/playwright.config.ts ./apps/web/
 
@@ -29,33 +44,22 @@ COPY ./packages ./packages
 
 COPY ./yarn.lock ./package.json ./
 
-RUN --mount=type=cache,sharing=locked,target=/usr/local/share/.cache/yarn \
-    set -eux && \
-    # Install build tools for native modules (msgpackr-extract, etc.) and runtime dependencies
-    apt-get update && \
-    apt-get install -yqq --no-install-recommends \
-        build-essential \
-        python3 \
-        curl \
-        ca-certificates && \
-    yarn install --network-timeout 10000000 && \
-    # Cleanup build tools to reduce image size
-    apt-get purge -y build-essential python3 && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Install dependencies (no cache mount to ensure install-state.gz persists)
+RUN yarn install --network-timeout 10000000
 
 # Copy the compiled monolith binary from the builder stage
 COPY --from=monolith-builder /usr/local/cargo/bin/monolith /usr/local/bin/monolith
 
-RUN set -eux && \
-    apt-get clean && \
-    yarn cache clean
-
+# Copy source code
 COPY . .
 
 RUN yarn prisma:generate && \
     yarn web:build
+
+# Cleanup build tools to reduce final image size
+RUN apt-get purge -y build-essential python3 && \
+    apt-get autoremove -y && \
+    yarn cache clean
 
 HEALTHCHECK --interval=30s \
             --timeout=5s \
