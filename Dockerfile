@@ -32,9 +32,8 @@ RUN mkdir /data
 
 WORKDIR /data
 
-# Copy yarn configuration first
+# Copy yarn configuration
 COPY .yarnrc.yml ./
-COPY .yarn ./.yarn
 
 COPY ./apps/web/package.json ./apps/web/playwright.config.ts ./apps/web/
 
