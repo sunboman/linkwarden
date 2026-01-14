@@ -14,6 +14,9 @@ FROM node:22.14-bullseye-slim AS main-app
 
 ARG DEBIAN_FRONTEND=noninteractive
 
+# Enable corepack for Yarn 4.x support (must be before any yarn commands)
+RUN corepack enable
+
 RUN mkdir /data
 
 WORKDIR /data
@@ -35,8 +38,6 @@ RUN --mount=type=cache,sharing=locked,target=/usr/local/share/.cache/yarn \
         python3 \
         curl \
         ca-certificates && \
-    # Enable corepack for Yarn 4.x support
-    corepack enable && \
     yarn install --network-timeout 10000000 && \
     # Cleanup build tools to reduce image size
     apt-get purge -y build-essential python3 && \
