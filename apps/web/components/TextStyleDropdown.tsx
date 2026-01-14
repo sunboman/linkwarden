@@ -103,6 +103,8 @@ const TextStyleDropdown = (props: Props) => {
                         ? bentham.style.fontFamily
                         : data?.readableFontFamily === "lora"
                           ? lora.style.fontFamily
+                          : data?.readableFontFamily === "new-york"
+                            ? '"New York", ui-serif, "Georgia", serif'
                           : data?.readableFontFamily) || "sans-serif",
                 }}
               >
@@ -190,6 +192,19 @@ const TextStyleDropdown = (props: Props) => {
               }}
             >
               <span className={lora.className}>Lora</span>
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              style={{ fontFamily: '"New York", ui-serif, "Georgia", serif' }}
+              checked={data?.readableFontFamily === "new-york"}
+              onSelect={() => {
+                updateUserPreference.mutate({
+                  readableFontFamily: "new-york",
+                });
+              }}
+            >
+              <span style={{ fontFamily: '"New York", ui-serif, "Georgia", serif' }}>
+                New York
+              </span>
             </DropdownMenuCheckboxItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>

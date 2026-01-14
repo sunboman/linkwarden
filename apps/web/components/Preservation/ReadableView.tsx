@@ -306,6 +306,8 @@ export default function ReadableView({ link, initialContent }: Props) {
         return bentham.style.fontFamily;
       } else if (user.readableFontFamily === "lora") {
         return lora.style.fontFamily;
+      } else if (user.readableFontFamily === "new-york") {
+        return '"New York", ui-serif, "Georgia", serif';
       } else return user.readableFontFamily;
     };
 
