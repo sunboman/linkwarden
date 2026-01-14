@@ -68,4 +68,4 @@ HEALTHCHECK --interval=30s \
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "yarn prisma:deploy && yarn concurrently:start"]
+CMD ["sh", "-c", "(yarn prisma:deploy || yarn workspace @linkwarden/prisma prisma db push --accept-data-loss || true) && yarn concurrently:start"]
