@@ -21,7 +21,8 @@ import {
 import LinkActions from "../LinkViews/LinkComponents/LinkActions";
 import { useCollections } from "@linkwarden/router/collections";
 import clsx from "clsx";
-import ToggleDarkMode from "../ToggleDarkMode";
+import { useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import TextStyleDropdown from "../TextStyleDropdown";
 import HighlightDrawer from "../HighlightDrawer";
 
@@ -30,6 +31,46 @@ type Props = {
   format?: ArchivedFormat;
   className?: string;
   onArchive?: () => void;
+};
+
+type ArchiveButtonProps = {
+  link: LinkIncludingShortenedCollectionAndTags;
+  t: ReturnType<typeof useTranslation>["t"];
+  onArchive?: () => void;
+};
+
+const ArchiveButton = ({ link, t, onArchive }: ArchiveButtonProps) => {
+  const queryClient = useQueryClient();
+
+  const handleToggleArchive = async () => {
+    const load = toast.loading(t("sending_request"));
+    const response = await fetch(`/api/v1/links/${link.id}/toggle-archive`, {
+      method: "PUT",
+    });
+    const data = await response.json();
+    toast.dismiss(load);
+    if (response.ok) {
+      toast.success(data.response);
+      queryClient.invalidateQueries({ queryKey: ["dashboardData"] });
+      queryClient.invalidateQueries({ queryKey: ["links"] });
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+
+      if (!link.archived && onArchive) {
+        onArchive();
+      }
+    } else {
+      toast.error(data.response);
+    }
+  };
+
+  return (
+    <Button variant="ghost" size="icon" onClick={handleToggleArchive}>
+      <i
+        className={`${link.archived ? "bi-box-arrow-up" : "bi-archive"} text-xl`}
+        title={link.archived ? t("unarchive") : t("archive")}
+      />
+    </Button>
+  );
 };
 
 const PreservationNavbar = ({
@@ -219,7 +260,7 @@ const PreservationNavbar = ({
         </DropdownMenu>
 
         <div className="flex gap-2 items-center text-neutral">
-          <ToggleDarkMode />
+          <ArchiveButton link={link} t={t} onArchive={onArchive} />
           <LinkActions
             link={link}
             t={t}

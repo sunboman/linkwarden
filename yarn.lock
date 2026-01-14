@@ -4889,6 +4889,7 @@ __metadata:
     "@linkwarden/prisma": "npm:*"
     "@linkwarden/router": "npm:*"
     "@linkwarden/types": "npm:*"
+    "@mozilla/readability": "npm:^0.6.0"
     "@phosphor-icons/core": "npm:^2.1.1"
     "@phosphor-icons/react": "npm:^2.1.7"
     "@playwright/test": "npm:1.57.0"
