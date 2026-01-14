@@ -1,5 +1,5 @@
 {
-  "id": "/dashboard",
+  "id": "/links",
   "name":"Linkreader",
   "short_name":"Linkreader",
   "icons":[
@@ -45,5 +45,5 @@
   "background_color":"#000000",
   "display":"standalone",
   "orientation": "portrait",
-  "start_url": "/dashboard"
+  "start_url": "/links"
 }
