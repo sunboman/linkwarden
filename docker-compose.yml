@@ -4,7 +4,7 @@ services:
     env_file: .env
     restart: always
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - ${DATA_DIR:-$HOME/.linkreader}/pgdata:/var/lib/postgresql/data
   linkreader:
     env_file: .env
     environment:
@@ -22,6 +22,7 @@ services:
       - "homepage.href=http://${HOST}:${PORT:-3031}"
       - "homepage.description=Self-hosted read-it-later app"
     volumes:
-      - ./data:/data/data
+      - ${DATA_DIR:-$HOME/.linkreader}/data:/data/data
     depends_on:
       - postgres
+

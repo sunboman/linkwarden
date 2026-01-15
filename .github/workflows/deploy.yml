@@ -6,17 +6,41 @@ on:
       - linkreader
   workflow_dispatch:
 
-jobs:
-  deploy:
-    runs-on: self-hosted
+env:
+  COMPOSE_PROJECT_NAME: linkreader
+  DATA_DIR: $HOME/.linkreader
 
+jobs:
+  checkout:
+    runs-on: self-hosted
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build and deploy
-        env:
-          COMPOSE_PROJECT_NAME: linkreader
+  cleanup:
+    runs-on: self-hosted
+    needs: checkout
+    steps:
+      - name: Cleanup Docker resources
         run: |
-          chmod +x ./build_and_run.sh
-          ./build_and_run.sh --build
+          chmod +x ./scripts/cleanup.sh
+          ./scripts/cleanup.sh
+
+  build:
+    runs-on: self-hosted
+    needs: cleanup
+    steps:
+      - name: Build Docker images
+        run: |
+          chmod +x ./scripts/build.sh
+          ./scripts/build.sh
+
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: Deploy service
+        run: |
+          chmod +x ./scripts/deploy.sh
+          ./scripts/deploy.sh
+
