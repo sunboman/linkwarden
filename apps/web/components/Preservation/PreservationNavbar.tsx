@@ -25,6 +25,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import TextStyleDropdown from "../TextStyleDropdown";
 import HighlightDrawer from "../HighlightDrawer";
+import { useUpdateUserPreference, useUser } from "@linkwarden/router/user";
 
 type Props = {
   link: LinkIncludingShortenedCollectionAndTags;
@@ -53,6 +54,9 @@ const PreservationNavbar = ({
 
   const [linkModal, setLinkModal] = useState(false);
   const [highlightDrawer, setHighlightDrawer] = useState(false);
+
+  const { data: user } = useUser();
+  const updateUserPreference = useUpdateUserPreference();
 
   useEffect(() => {
     setCollection(
@@ -94,16 +98,12 @@ const PreservationNavbar = ({
       <div
         className={clsx(
           "p-2 z-10 flex gap-2 justify-between fixed top-0 left-0 right-0 transition-transform duration-300 ease-in-out",
-          "border-b shadow-lg",
+          "border-b shadow-lg backdrop-blur-xl",
+          "bg-white/75 dark:bg-neutral-900/75",
+          "border-neutral-200/50 dark:border-white/10",
           showNavbar ? "translate-y-0" : "-translate-y-full",
           className
         )}
-        style={{
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          backgroundColor: "rgba(40, 40, 45, 0.75)",
-          borderColor: "rgba(255, 255, 255, 0.1)",
-        }}
       >
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild>
@@ -231,6 +231,44 @@ const PreservationNavbar = ({
         </DropdownMenu>
 
         <div className="flex gap-2 items-center text-neutral">
+          {/* Theme Toggle Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                {user?.theme === "light" ? (
+                  <i className="bi-sun-fill text-xl" />
+                ) : user?.theme === "dark" ? (
+                  <i className="bi-moon-fill text-xl" />
+                ) : (
+                  <i className="bi-circle-half text-xl" />
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuCheckboxItem
+                checked={user?.theme === "light"}
+                onSelect={() => updateUserPreference.mutate({ theme: "light" })}
+              >
+                <i className="bi-sun-fill mr-2" />
+                {t("light")}
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={user?.theme === "dark"}
+                onSelect={() => updateUserPreference.mutate({ theme: "dark" })}
+              >
+                <i className="bi-moon-fill mr-2" />
+                {t("dark")}
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem
+                checked={user?.theme === "auto" || !user?.theme}
+                onSelect={() => updateUserPreference.mutate({ theme: "auto" })}
+              >
+                <i className="bi-circle-half mr-2" />
+                {t("system")}
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <LinkActions
             link={link}
             t={t}
@@ -246,30 +284,26 @@ const PreservationNavbar = ({
       <div
         className={clsx(
           "fixed bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 px-3 py-2 rounded-full transition-all duration-300 ease-in-out",
-          "border shadow-lg",
+          "border shadow-lg backdrop-blur-xl",
+          "bg-white/75 dark:bg-neutral-900/75",
+          "border-neutral-200/50 dark:border-white/10",
           showNavbar ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"
         )}
-        style={{
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          backgroundColor: "rgba(40, 40, 45, 0.75)",
-          borderColor: "rgba(255, 255, 255, 0.1)",
-        }}
       >
         <Button
           variant="ghost"
           size="sm"
-          className="h-9 px-3 text-neutral hover:bg-white/20 dark:hover:bg-white/10 rounded-full"
+          className="h-9 px-3 text-neutral hover:bg-neutral-200/50 dark:hover:bg-white/10 rounded-full"
           onClick={() => window.open(link.url || "", "_blank")}
         >
           <i className="bi-box-arrow-up-right text-lg" />
           <span className="ml-1.5 text-sm font-medium">Open</span>
         </Button>
-        <div className="w-px h-5 bg-white/30 dark:bg-white/10" />
+        <div className="w-px h-5 bg-neutral-300 dark:bg-white/20" />
         <Button
           variant="ghost"
           size="sm"
-          className="h-9 px-3 text-neutral hover:bg-white/20 dark:hover:bg-white/10 rounded-full"
+          className="h-9 px-3 text-neutral hover:bg-neutral-200/50 dark:hover:bg-white/10 rounded-full"
           onClick={async () => {
             const load = toast.loading(t("sending_request"));
             const response = await fetch(`/api/v1/links/${link.id}/toggle-archive`, {
