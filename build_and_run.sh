@@ -37,10 +37,10 @@ fi
 if [ "$BUILD" = true ]; then
   echo "Building images (old containers still running)..."
   docker compose build --no-cache
-  
-  echo "Build complete. Stopping old containers..."
-  docker compose down --remove-orphans
 fi
+
+echo "Stopping old containers..."
+docker compose down --remove-orphans
 
 echo "Starting containers on port $PORT..."
 docker compose up -d
