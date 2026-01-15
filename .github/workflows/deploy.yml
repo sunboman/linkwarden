@@ -16,5 +16,6 @@ jobs:
 
       - name: Build and deploy
         run: |
+          docker compose down --remove-orphans || true
           chmod +x ./build_and_run.sh
           ./build_and_run.sh --build
