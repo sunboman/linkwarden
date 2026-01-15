@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 # Deploy script: stop old containers and start new ones
 
 # Defaults
