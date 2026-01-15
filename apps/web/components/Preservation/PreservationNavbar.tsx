@@ -93,10 +93,17 @@ const PreservationNavbar = ({
       {/* Top Navbar - hides on scroll */}
       <div
         className={clsx(
-          "p-2 z-10 bg-base-100 flex gap-2 justify-between fixed top-0 left-0 right-0 transition-transform duration-300 ease-in-out",
+          "p-2 z-10 flex gap-2 justify-between fixed top-0 left-0 right-0 transition-transform duration-300 ease-in-out",
+          "border-b shadow-lg",
           showNavbar ? "translate-y-0" : "-translate-y-full",
           className
         )}
+        style={{
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          backgroundColor: "rgba(40, 40, 45, 0.75)",
+          borderColor: "rgba(255, 255, 255, 0.1)",
+        }}
       >
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild>
@@ -239,12 +246,14 @@ const PreservationNavbar = ({
       <div
         className={clsx(
           "fixed bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 px-3 py-2 rounded-full transition-all duration-300 ease-in-out",
-          "backdrop-blur-xl bg-white/20 dark:bg-black/20 border border-white/30 dark:border-white/10 shadow-lg",
+          "border shadow-lg",
           showNavbar ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"
         )}
         style={{
-          backdropFilter: "blur(20px) saturate(180%)",
-          WebkitBackdropFilter: "blur(20px) saturate(180%)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          backgroundColor: "rgba(40, 40, 45, 0.75)",
+          borderColor: "rgba(255, 255, 255, 0.1)",
         }}
       >
         <Button
