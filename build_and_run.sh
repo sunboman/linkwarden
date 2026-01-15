@@ -17,11 +17,6 @@ done
 export PORT=$PORT
 export HOST=${HOST:-$(hostname)}
 
-if [ "$BUILD" = true ]; then
-  echo "Building images..."
-  docker compose build --no-cache
-fi
-
 # Generate .env if missing
 if [ ! -f .env ]; then
   echo "Generating .env file..."
@@ -37,6 +32,14 @@ EOF
   echo ".env file generated."
 else
   echo ".env file exists. Skipping generation."
+fi
+
+if [ "$BUILD" = true ]; then
+  echo "Building images (old containers still running)..."
+  docker compose build --no-cache
+  
+  echo "Build complete. Stopping old containers..."
+  docker compose down --remove-orphans
 fi
 
 echo "Starting containers on port $PORT..."

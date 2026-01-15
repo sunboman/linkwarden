@@ -18,6 +18,5 @@ jobs:
         env:
           COMPOSE_PROJECT_NAME: linkreader
         run: |
-          docker compose down --remove-orphans || true
           chmod +x ./build_and_run.sh
           ./build_and_run.sh --build
