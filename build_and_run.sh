@@ -40,7 +40,7 @@ if [ "$BUILD" = true ]; then
 fi
 
 echo "Stopping old containers..."
-docker compose down --remove-orphans
+docker compose down --remove-orphans || true
 
 echo "Starting containers on port $PORT..."
 docker compose up -d
