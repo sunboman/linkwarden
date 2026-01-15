@@ -158,13 +158,9 @@ export default function PreservationPageContent({
 
     const onScroll = () => {
       const st = container.scrollTop;
-      // if scrolling down and beyond a small threshold, hide
+      // if scrolling down and beyond a small threshold, hide navbar and floating pill
       if (st - 10 > lastScrollTop.current) {
-        if (
-          (customFormat ?? Number(router.query.format)) ===
-          ArchivedFormat.readability
-        )
-          setShowNavbar(false);
+        setShowNavbar(false);
       }
       // if scrolling up, show
       else if (st < lastScrollTop.current - 10) {
@@ -247,7 +243,11 @@ export default function PreservationPageContent({
         />
       )}
       <div
-        className={`bg-base-200 overflow-y-auto w-screen h-[calc(100vh-3.1rem)] mt-[3.1rem]`}
+        className={`bg-base-200 overflow-y-auto w-screen transition-all duration-300 ease-in-out ${
+          showNavbar 
+            ? "h-[calc(100vh-3.1rem)] mt-[3.1rem]" 
+            : "h-screen mt-0"
+        }`}
         ref={scrollRef}
       >
         <PreservationContent

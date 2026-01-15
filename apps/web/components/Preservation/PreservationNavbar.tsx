@@ -33,45 +33,6 @@ type Props = {
   onArchive?: () => void;
 };
 
-type ArchiveButtonProps = {
-  link: LinkIncludingShortenedCollectionAndTags;
-  t: ReturnType<typeof useTranslation>["t"];
-  onArchive?: () => void;
-};
-
-const ArchiveButton = ({ link, t, onArchive }: ArchiveButtonProps) => {
-  const queryClient = useQueryClient();
-
-  const handleToggleArchive = async () => {
-    const load = toast.loading(t("sending_request"));
-    const response = await fetch(`/api/v1/links/${link.id}/toggle-archive`, {
-      method: "PUT",
-    });
-    const data = await response.json();
-    toast.dismiss(load);
-    if (response.ok) {
-      toast.success(data.response);
-      queryClient.invalidateQueries({ queryKey: ["dashboardData"] });
-      queryClient.invalidateQueries({ queryKey: ["links"] });
-      queryClient.invalidateQueries({ queryKey: ["collections"] });
-
-      if (!link.archived && onArchive) {
-        onArchive();
-      }
-    } else {
-      toast.error(data.response);
-    }
-  };
-
-  return (
-    <Button variant="ghost" size="icon" onClick={handleToggleArchive}>
-      <i
-        className={`${link.archived ? "bi-box-arrow-up" : "bi-archive"} text-xl`}
-        title={link.archived ? t("unarchive") : t("archive")}
-      />
-    </Button>
-  );
-};
 
 const PreservationNavbar = ({
   link,
@@ -80,6 +41,7 @@ const PreservationNavbar = ({
   className,
   onArchive,
 }: Props & { showNavbar?: boolean }) => {
+  const queryClient = useQueryClient();
   const { data: collections = [] } = useCollections();
 
   const [collection, setCollection] =
@@ -128,9 +90,11 @@ const PreservationNavbar = ({
 
   return (
     <>
+      {/* Top Navbar - hides on scroll */}
       <div
         className={clsx(
-          "p-2 z-10 bg-base-100 flex gap-2 justify-between fixed top-0 left-0 right-0",
+          "p-2 z-10 bg-base-100 flex gap-2 justify-between fixed top-0 left-0 right-0 transition-transform duration-300 ease-in-out",
+          showNavbar ? "translate-y-0" : "-translate-y-full",
           className
         )}
       >
@@ -260,14 +224,6 @@ const PreservationNavbar = ({
         </DropdownMenu>
 
         <div className="flex gap-2 items-center text-neutral">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => window.open(link.url || "", "_blank")}
-          >
-            <i className="bi-box-arrow-up-right text-xl" title={t("open_original")} />
-          </Button>
-          <ArchiveButton link={link} t={t} onArchive={onArchive} />
           <LinkActions
             link={link}
             t={t}
@@ -278,6 +234,60 @@ const PreservationNavbar = ({
           />
         </div>
       </div>
+
+      {/* Floating Action Pill - bottom center, hides on scroll */}
+      <div
+        className={clsx(
+          "fixed bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 px-3 py-2 rounded-full transition-all duration-300 ease-in-out",
+          "backdrop-blur-xl bg-white/20 dark:bg-black/20 border border-white/30 dark:border-white/10 shadow-lg",
+          showNavbar ? "translate-y-0 opacity-100" : "translate-y-24 opacity-0 pointer-events-none"
+        )}
+        style={{
+          backdropFilter: "blur(20px) saturate(180%)",
+          WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        }}
+      >
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-9 px-3 text-neutral hover:bg-white/20 dark:hover:bg-white/10 rounded-full"
+          onClick={() => window.open(link.url || "", "_blank")}
+        >
+          <i className="bi-box-arrow-up-right text-lg" />
+          <span className="ml-1.5 text-sm font-medium">Open</span>
+        </Button>
+        <div className="w-px h-5 bg-white/30 dark:bg-white/10" />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-9 px-3 text-neutral hover:bg-white/20 dark:hover:bg-white/10 rounded-full"
+          onClick={async () => {
+            const load = toast.loading(t("sending_request"));
+            const response = await fetch(`/api/v1/links/${link.id}/toggle-archive`, {
+              method: "PUT",
+            });
+            const data = await response.json();
+            toast.dismiss(load);
+            if (response.ok) {
+              toast.success(data.response);
+              queryClient.invalidateQueries({ queryKey: ["dashboardData"] });
+              queryClient.invalidateQueries({ queryKey: ["links"] });
+              queryClient.invalidateQueries({ queryKey: ["collections"] });
+              if (!link.archived && onArchive) {
+                onArchive();
+              }
+            } else {
+              toast.error(data.response);
+            }
+          }}
+        >
+          <i className={`${link.archived ? "bi-box-arrow-up" : "bi-archive"} text-lg`} />
+          <span className="ml-1.5 text-sm font-medium">
+            {link.archived ? t("unarchive") : t("archive")}
+          </span>
+        </Button>
+      </div>
+
       {highlightDrawer && (
         <HighlightDrawer onClose={() => setHighlightDrawer(false)} />
       )}
