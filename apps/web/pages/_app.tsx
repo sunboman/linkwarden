@@ -14,6 +14,7 @@ import { appWithTranslation } from "next-i18next";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NextPage } from "next";
+import ThemeApplier from "@/components/ThemeApplier";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -105,6 +106,7 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
           <link rel="manifest" href="/site.webmanifest" />
         </Head>
         <AuthRedirect>
+          <ThemeApplier />
           {/* <GetData> */}
           <Toaster
             position="top-center"
