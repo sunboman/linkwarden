@@ -8,6 +8,24 @@ import {
 } from "@linkwarden/lib/schemaValidation";
 import { hasPassedLimit } from "@linkwarden/lib";
 
+/**
+ * Removes query parameters from Substack URLs.
+ * Substack links often include tracking params that we don't need to store.
+ */
+function cleanSubstackUrl(url: string): string {
+  try {
+    const parsedUrl = new URL(url);
+    if (parsedUrl.hostname.endsWith('.substack.com')) {
+      // Remove all query parameters
+      parsedUrl.search = '';
+      return parsedUrl.toString();
+    }
+  } catch {
+    // If URL parsing fails, return original
+  }
+  return url;
+}
+
 export default async function postLink(
   body: PostLinkSchemaType,
   userId: number
@@ -16,14 +34,18 @@ export default async function postLink(
 
   if (!dataValidation.success) {
     return {
-      response: `Error: ${
-        dataValidation.error.issues[0].message
-      } [${dataValidation.error.issues[0].path.join(", ")}]`,
+      response: `Error: ${dataValidation.error.issues[0].message
+        } [${dataValidation.error.issues[0].path.join(", ")}]`,
       status: 400,
     };
   }
 
   const link = dataValidation.data;
+
+  // Clean Substack URLs by removing query parameters
+  if (link.url) {
+    link.url = cleanSubstackUrl(link.url);
+  }
 
   const linkCollection = await setCollection({
     userId,
@@ -134,9 +156,8 @@ export default async function postLink(
     where: { id: newLink.id },
     data: {
       image: link.image
-        ? `archives/${newLink.collectionId}/${newLink.id}.${
-            link.image === "png" ? "png" : "jpeg"
-          }`
+        ? `archives/${newLink.collectionId}/${newLink.id}.${link.image === "png" ? "png" : "jpeg"
+        }`
         : undefined,
     },
   });
