@@ -28,6 +28,10 @@ NEXTAUTH_URL=http://localhost:$PORT/api/v1/auth
 NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 POSTGRES_PASSWORD=$POSTGRES_PASSWORD
 DATABASE_URL=postgresql://postgres:\${POSTGRES_PASSWORD}@postgres:5432/postgres
+
+# AI Settings
+NEXT_PUBLIC_OLLAMA_ENDPOINT_URL=http://ollama:11434
+OLLAMA_MODEL=gpt-oss:20b
 EOF
   echo ".env file generated."
 else
