@@ -4,6 +4,7 @@ import { useGetLink, useLinks } from "@linkwarden/router/links";
 import { PreservationContent } from "./PreservationContent";
 import PreservationNavbar from "./PreservationNavbar";
 import { ArchivedFormat } from "@linkwarden/types";
+import StickyReadingProgress from "./StickyReadingProgress";
 
 type Props = {
   customLink?: any;
@@ -24,6 +25,7 @@ export default function PreservationPageContent({
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
   const [showNavbar, setShowNavbar] = useState(true);
+  const [readingPercent, setReadingPercent] = useState(0);
 
   let isPublicRoute = router.pathname.startsWith("/public") ? true : undefined;
 
@@ -173,6 +175,7 @@ export default function PreservationPageContent({
         const height = container.scrollHeight - container.clientHeight;
         if (height > 0) {
           const percent = (st / height) * 100;
+          setReadingPercent(percent);
 
           // Find anchor
           const anchorEl = getFirstVisibleElement(container);
@@ -242,6 +245,7 @@ export default function PreservationPageContent({
           onArchive={onArchive}
         />
       )}
+      <StickyReadingProgress percent={readingPercent} />
       <div
         className={`bg-base-200 overflow-y-auto w-screen transition-all duration-300 ease-in-out ${
           showNavbar 

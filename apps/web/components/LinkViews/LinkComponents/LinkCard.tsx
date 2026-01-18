@@ -24,6 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { useDraggable } from "@dnd-kit/core";
 import { cn } from "@/lib/utils";
 import { TFunction } from "i18next";
+import ReadingProgress from "./ReadingProgress";
 
 type Props = {
   link: LinkIncludingShortenedCollectionAndTags;
@@ -145,6 +146,10 @@ function LinkCard({
                 <p className="truncate w-full text-primary text-sm">
                   {unescapeString(link.name)}
                 </p>
+              )}
+
+              {link.readingProgress && link.readingProgress.length > 0 && (
+                <ReadingProgress percent={link.readingProgress[0].percent} />
               )}
 
               {show.link && <LinkTypeBadge link={link} />}

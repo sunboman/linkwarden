@@ -136,6 +136,12 @@ export default async function searchLinks({
             select: { id: true },
           }
           : undefined,
+        readingProgress: userId
+          ? {
+            where: { userId },
+            select: { percent: true },
+          }
+          : undefined,
       },
       orderBy: order,
     });
@@ -237,6 +243,12 @@ export default async function searchLinks({
         ? {
           where: { id: userId },
           select: { id: true },
+        }
+        : undefined,
+      readingProgress: userId
+        ? {
+          where: { userId },
+          select: { percent: true },
         }
         : undefined,
     },

@@ -26,6 +26,9 @@ export interface LinkIncludingShortenedCollectionAndTags
   updatedAt?: string;
   archived?: boolean;
   collection: OptionalExcluding<Collection, "name" | "ownerId">;
+  readingProgress?: {
+    percent: number;
+  }[];
 }
 
 export interface Member {
