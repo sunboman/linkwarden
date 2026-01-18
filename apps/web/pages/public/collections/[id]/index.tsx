@@ -59,7 +59,7 @@ export default function PublicCollections() {
   };
 
   const [sortBy, setSortBy] = useState<Sort>(
-    Number(localStorage.getItem("sortBy")) ?? Sort.DateNewestFirst
+    Number(localStorage.getItem("sortBy")) ?? Sort.LastReadNewestFirst
   );
 
   const { data: tags } = usePublicTags();

@@ -46,7 +46,7 @@ export default function Index() {
   const { data: collections = [] } = useCollections();
 
   const [sortBy, setSortBy] = useState<Sort>(
-    Number(localStorage.getItem("sortBy")) ?? Sort.DateNewestFirst
+    Number(localStorage.getItem("sortBy")) ?? Sort.LastReadNewestFirst
   );
 
   const { links, data } = useLinks({

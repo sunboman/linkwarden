@@ -41,7 +41,7 @@ const useLocalSettingsStore = create<LocalSettingsStore>((set) => ({
       date: true,
     },
     columns: 0,
-    sortBy: Sort.DateNewestFirst,
+    sortBy: Sort.LastReadNewestFirst,
   },
   updateSettings: (newSettings) => {
     const { viewMode, color, sortBy, show, columns } = newSettings;

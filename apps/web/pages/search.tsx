@@ -24,7 +24,7 @@ const Page: NextPageWithLayout = () => {
   );
 
   const [sortBy, setSortBy] = useState<Sort>(
-    Number(localStorage.getItem("sortBy")) ?? Sort.DateNewestFirst
+    Number(localStorage.getItem("sortBy")) ?? Sort.LastReadNewestFirst
   );
 
   const [editMode, setEditMode] = useState(false);

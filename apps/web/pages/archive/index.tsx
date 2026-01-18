@@ -24,7 +24,7 @@ export default function Index() {
     (localStorage.getItem("viewMode") as ViewMode) || ViewMode.Card
   );
   const [sortBy, setSortBy] = useState<Sort>(
-    Number(localStorage.getItem("sortBy")) ?? Sort.DateNewestFirst
+    Number(localStorage.getItem("sortBy")) ?? Sort.LastReadNewestFirst
   );
 
   const { links, data } = useLinks({

@@ -60,6 +60,22 @@ export default function SortDropdown({ sortBy, setSort, t }: Props) {
           <DropdownMenuRadioItem value={Sort.NameZA.toString()}>
             {t("name_za")}
           </DropdownMenuRadioItem>
+
+          <DropdownMenuRadioItem value={Sort.ReadingProgressHighFirst.toString()}>
+            {t("reading_progress_high_first")}
+          </DropdownMenuRadioItem>
+
+          <DropdownMenuRadioItem value={Sort.ReadingProgressLowFirst.toString()}>
+            {t("reading_progress_low_first")}
+          </DropdownMenuRadioItem>
+
+          <DropdownMenuRadioItem value={Sort.LastReadNewestFirst.toString()}>
+            {t("last_read_newest_first")}
+          </DropdownMenuRadioItem>
+
+          <DropdownMenuRadioItem value={Sort.LastReadOldestFirst.toString()}>
+            {t("last_read_oldest_first")}
+          </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>

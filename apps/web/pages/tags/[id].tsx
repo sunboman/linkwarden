@@ -35,7 +35,7 @@ const Page: NextPageWithLayout = () => {
   const removeTag = useRemoveTag();
 
   const [sortBy, setSortBy] = useState<Sort>(
-    Number(localStorage.getItem("sortBy")) ?? Sort.DateNewestFirst
+    Number(localStorage.getItem("sortBy")) ?? Sort.LastReadNewestFirst
   );
 
   const [renameTag, setRenameTag] = useState(false);

@@ -24,10 +24,63 @@ export default async function searchLinks({
   const paginationTakeCount = Number(process.env.PAGINATION_TAKE_COUNT) || 50;
 
   let order: Order = { id: "desc" };
+  let sortByReadingProgress: Sort | null = null;
+
   if (query.sort === Sort.DateNewestFirst) order = { id: "desc" };
   else if (query.sort === Sort.DateOldestFirst) order = { id: "asc" };
   else if (query.sort === Sort.NameAZ) order = { name: "asc" };
   else if (query.sort === Sort.NameZA) order = { name: "desc" };
+  else if (
+    query.sort === Sort.ReadingProgressHighFirst ||
+    query.sort === Sort.ReadingProgressLowFirst ||
+    query.sort === Sort.LastReadNewestFirst ||
+    query.sort === Sort.LastReadOldestFirst
+  ) {
+    // Prisma doesn't support orderBy on related model aggregates
+    // We'll sort in application after fetching
+    sortByReadingProgress = query.sort;
+    order = { id: "desc" }; // default order for DB query
+  }
+
+  // Helper function to sort by reading progress in application
+  // For Last Read sorting: use readingProgress.updatedAt if read, otherwise fall back to createdAt
+  const sortByReadingProgressFn = <T extends {
+    readingProgress?: { percent: number; updatedAt: Date }[];
+    createdAt: Date;
+  }>(
+    links: T[],
+    sortType: Sort
+  ): T[] => {
+    return [...links].sort((a, b) => {
+      const aProgress = a.readingProgress?.[0];
+      const bProgress = b.readingProgress?.[0];
+
+      if (sortType === Sort.ReadingProgressHighFirst) {
+        return (bProgress?.percent ?? 0) - (aProgress?.percent ?? 0);
+      } else if (sortType === Sort.ReadingProgressLowFirst) {
+        return (aProgress?.percent ?? 0) - (bProgress?.percent ?? 0);
+      } else if (sortType === Sort.LastReadNewestFirst) {
+        // For read links: use last read time; for unread links: use added time
+        const aTime = aProgress?.updatedAt
+          ? new Date(aProgress.updatedAt).getTime()
+          : new Date(a.createdAt).getTime();
+        const bTime = bProgress?.updatedAt
+          ? new Date(bProgress.updatedAt).getTime()
+          : new Date(b.createdAt).getTime();
+        return bTime - aTime;
+      } else if (sortType === Sort.LastReadOldestFirst) {
+        // For read links: use last read time; for unread links: use added time
+        const aTime = aProgress?.updatedAt
+          ? new Date(aProgress.updatedAt).getTime()
+          : new Date(a.createdAt).getTime();
+        const bTime = bProgress?.updatedAt
+          ? new Date(bProgress.updatedAt).getTime()
+          : new Date(b.createdAt).getTime();
+        return aTime - bTime;
+      }
+      return 0;
+    });
+  };
 
   const tagCondition = [];
   if (query.tagId) {
@@ -139,7 +192,7 @@ export default async function searchLinks({
         readingProgress: userId
           ? {
             where: { userId },
-            select: { percent: true },
+            select: { percent: true, updatedAt: true },
           }
           : undefined,
       },
@@ -148,9 +201,13 @@ export default async function searchLinks({
 
     const nextCursor = meiliResp.hits.length === limit ? offset + limit : null;
 
+    const sortedLinks = sortByReadingProgress
+      ? sortByReadingProgressFn(links, sortByReadingProgress)
+      : links;
+
     return {
       data: {
-        links,
+        links: sortedLinks,
         nextCursor,
       },
       statusCode: 200,
@@ -248,16 +305,20 @@ export default async function searchLinks({
       readingProgress: userId
         ? {
           where: { userId },
-          select: { percent: true },
+          select: { percent: true, updatedAt: true },
         }
         : undefined,
     },
     orderBy: order,
   });
 
+  const sortedLinks = sortByReadingProgress
+    ? sortByReadingProgressFn(links, sortByReadingProgress)
+    : links;
+
   return {
     data: {
-      links,
+      links: sortedLinks,
       nextCursor:
         links.length === paginationTakeCount
           ? links[links.length - 1].id

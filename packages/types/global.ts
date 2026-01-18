@@ -88,6 +88,10 @@ export enum Sort {
   DateOldestFirst = 1,
   NameAZ = 2,
   NameZA = 3,
+  ReadingProgressHighFirst = 4,
+  ReadingProgressLowFirst = 5,
+  LastReadNewestFirst = 6,
+  LastReadOldestFirst = 7,
 }
 
 export type Order = { [key: string]: "asc" | "desc" };
