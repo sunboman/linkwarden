@@ -561,6 +561,82 @@ const useArchiveAction = () => {
   });
 };
 
+const useUpdateReadingProgress = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      linkId,
+      percent,
+      textPosition,
+    }: {
+      linkId: number;
+      percent: number;
+      textPosition?: any;
+    }) => {
+      const res = await fetch("/api/v1/reading-progress", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ linkId, percent, textPosition }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.response);
+      return { linkId, percent };
+    },
+    onSuccess: ({ linkId, percent }) => {
+      const updatedAt = new Date().toISOString();
+
+      // Update the link's readingProgress in the paginated cache and move to front
+      queryClient.setQueriesData({ queryKey: ["links"] }, (oldData: any) => {
+        if (!oldData?.pages) return oldData;
+
+        let updatedLink: any = null;
+
+        // First pass: find and update the link, remove from current position
+        const pagesWithUpdatedLink = oldData.pages.map((page: any) => ({
+          ...page,
+          links: page.links.map((l: any) => {
+            if (l.id === linkId) {
+              updatedLink = {
+                ...l,
+                readingProgress: [{ percent, updatedAt }],
+              };
+              return updatedLink;
+            }
+            return l;
+          }),
+        }));
+
+        // If we found and updated the link, move it to the front of the first page
+        if (updatedLink) {
+          const pagesWithLinkRemoved = pagesWithUpdatedLink.map(
+            (page: any) => ({
+              ...page,
+              links: page.links.filter((l: any) => l.id !== linkId),
+            })
+          );
+          pagesWithLinkRemoved[0].links = [
+            updatedLink,
+            ...pagesWithLinkRemoved[0].links,
+          ];
+          return { ...oldData, pages: pagesWithLinkRemoved };
+        }
+
+        return { ...oldData, pages: pagesWithUpdatedLink };
+      });
+
+      // Also update the individual link cache
+      queryClient.setQueryData(["link", linkId, false], (oldLink: any) => {
+        if (!oldLink) return oldLink;
+        return {
+          ...oldLink,
+          readingProgress: [{ percent, updatedAt }],
+        };
+      });
+    },
+  });
+};
+
 const resetInfiniteQueryPagination = async (
   queryClient: any,
   queryKey: any
@@ -589,4 +665,5 @@ export {
   useArchiveAction,
   resetInfiniteQueryPagination,
   useUpdateFile,
+  useUpdateReadingProgress,
 };

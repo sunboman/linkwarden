@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
-import { useGetLink, useLinks } from "@linkwarden/router/links";
+import { useGetLink, useLinks, useUpdateReadingProgress } from "@linkwarden/router/links";
 import { PreservationContent } from "./PreservationContent";
 import PreservationNavbar from "./PreservationNavbar";
 import { ArchivedFormat } from "@linkwarden/types";
@@ -21,6 +21,7 @@ export default function PreservationPageContent({
 }: Props) {
   const router = useRouter();
   const { links } = useLinks();
+  const updateReadingProgress = useUpdateReadingProgress();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
@@ -189,14 +190,10 @@ export default function PreservationPageContent({
           }
 
           progressUpdateTimeout.current = setTimeout(() => {
-            fetch("/api/v1/reading-progress", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                linkId: link.id,
-                percent,
-                textPosition,
-              }),
+            updateReadingProgress.mutate({
+              linkId: link.id,
+              percent,
+              textPosition,
             });
           }, 1000);
         }
@@ -230,8 +227,25 @@ export default function PreservationPageContent({
     return () => {
       container.removeEventListener("scroll", onScroll);
       window.removeEventListener("beforeunload", onUnload);
-      // Also save on component unmount (e.g. client-side navigation)
-      onUnload();
+      
+      // On client-side navigation, update the React Query cache
+      if (link?.id && link.id > 0 && container) {
+        const height = container.scrollHeight - container.clientHeight;
+        if (height > 0) {
+          const percent = (container.scrollTop / height) * 100;
+          const anchorEl = getFirstVisibleElement(container);
+          const textPosition = anchorEl
+            ? getTextAnchor(container, anchorEl)
+            : null;
+          
+          // Update cache for navigation back
+          updateReadingProgress.mutate({
+            linkId: link.id,
+            percent,
+            textPosition,
+          });
+        }
+      }
     };
   }, [customFormat, router.query.format, link?.id]);
 
