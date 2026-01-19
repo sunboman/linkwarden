@@ -586,43 +586,25 @@ const useUpdateReadingProgress = () => {
     onSuccess: ({ linkId, percent }) => {
       const updatedAt = new Date().toISOString();
 
-      // Update the link's readingProgress in the paginated cache and move to front
+      // Update the link's readingProgress in the paginated cache (in-place only)
       queryClient.setQueriesData({ queryKey: ["links"] }, (oldData: any) => {
         if (!oldData?.pages) return oldData;
 
-        let updatedLink: any = null;
-
-        // First pass: find and update the link, remove from current position
-        const pagesWithUpdatedLink = oldData.pages.map((page: any) => ({
+        // Map through pages and links to update the specific link
+        const updatedPages = oldData.pages.map((page: any) => ({
           ...page,
           links: page.links.map((l: any) => {
             if (l.id === linkId) {
-              updatedLink = {
+              return {
                 ...l,
                 readingProgress: [{ percent, updatedAt }],
               };
-              return updatedLink;
             }
             return l;
           }),
         }));
 
-        // If we found and updated the link, move it to the front of the first page
-        if (updatedLink) {
-          const pagesWithLinkRemoved = pagesWithUpdatedLink.map(
-            (page: any) => ({
-              ...page,
-              links: page.links.filter((l: any) => l.id !== linkId),
-            })
-          );
-          pagesWithLinkRemoved[0].links = [
-            updatedLink,
-            ...pagesWithLinkRemoved[0].links,
-          ];
-          return { ...oldData, pages: pagesWithLinkRemoved };
-        }
-
-        return { ...oldData, pages: pagesWithUpdatedLink };
+        return { ...oldData, pages: updatedPages };
       });
 
       // Also update the individual link cache
