@@ -1,5 +1,6 @@
 import NoLinksFound from "@/components/NoLinksFound";
 import { useLinks, useUpdateLink } from "@linkwarden/router/links";
+import { useQueryClient } from "@tanstack/react-query";
 import MainLayout from "@/layouts/MainLayout";
 import React, { useEffect, useState } from "react";
 import {
@@ -19,6 +20,7 @@ export default function Index() {
   const [activeLink, setActiveLink] =
     useState<LinkIncludingShortenedCollectionAndTags | null>(null);
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
 
   const [viewMode, setViewMode] = useState<ViewMode>(
     (localStorage.getItem("viewMode") as ViewMode) || ViewMode.Card
@@ -55,7 +57,9 @@ export default function Index() {
             editMode={editMode}
             setEditMode={setEditMode}
             links={links}
-            onRefresh={() => data.refetch()}
+            onRefresh={() =>
+              queryClient.invalidateQueries({ queryKey: ["links"] })
+            }
           >
             <div className={clsx("flex items-center gap-3")}>
               <i
