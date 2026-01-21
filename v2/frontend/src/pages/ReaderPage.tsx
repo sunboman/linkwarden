@@ -160,52 +160,8 @@ export function ReaderPage() {
   // Active highlight popover state
   const [activeHighlight, setActiveHighlight] = useState<{ id: string; comment?: string; rect: DOMRect } | null>(null)
 
-  // Temporary visual highlight for selection during note mode
-  const [tempHighlightActive, setTempHighlightActive] = useState(false)
-  
-  // Apply/remove temporary highlight when entering/leaving note mode
-  const applyTempHighlight = () => {
-      const range = selectedRangeRef.current
-      if (!range || !contentRef.current) return
-      
-      try {
-          // Create a temporary highlight span
-          const tempSpan = document.createElement('span')
-          tempSpan.className = 'temp-selection-highlight bg-blue-200/60 dark:bg-blue-500/40 rounded-sm'
-          tempSpan.id = 'temp-highlight'
-          range.surroundContents(tempSpan)
-          setTempHighlightActive(true)
-      } catch (e) {
-          // Selection may span multiple elements
-          console.warn('Could not apply temp highlight', e)
-      }
-  }
-  
-  const removeTempHighlight = () => {
-      const tempEl = document.getElementById('temp-highlight')
-      if (tempEl && contentRef.current) {
-          const text = tempEl.textContent || ''
-          const textNode = document.createTextNode(text)
-          tempEl.parentNode?.replaceChild(textNode, tempEl)
-          
-          // Re-select the text so the range is valid again
-          const selection = window.getSelection()
-          if (selection) {
-              const newRange = document.createRange()
-              newRange.selectNodeContents(textNode)
-              selectedRangeRef.current = newRange
-          }
-      }
-      setTempHighlightActive(false)
-  }
-
   const handleHighlight = async (color: string, comment?: string, isAnnotation?: boolean) => {
-      // Remove temp highlight first if it exists
-      if (tempHighlightActive) {
-          removeTempHighlight()
-      }
-      
-      // Use stored range as selection might be in textarea
+      // Use stored range
       const range = selectedRangeRef.current
       if (!range) return
 
@@ -422,19 +378,10 @@ export function ReaderPage() {
             onClose={() => {
                 isMenuInteractingRef.current = false
                 setSelectionPos(null)
-                if (tempHighlightActive) {
-                    removeTempHighlight()
-                }
             }}
             onHighlight={handleHighlight}
             onInteractionChange={(active) => {
                 isMenuInteractingRef.current = active
-                // Apply/remove temp highlight when entering/leaving note mode
-                if (active) {
-                    applyTempHighlight()
-                } else if (tempHighlightActive) {
-                    removeTempHighlight()
-                }
             }}
           />
         <article 

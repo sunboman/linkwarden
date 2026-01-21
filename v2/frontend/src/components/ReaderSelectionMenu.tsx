@@ -16,16 +16,31 @@ export function ReaderSelectionMenu({ position, onHighlight, onClose, onInteract
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        onClose()
+        // Don't close if user just made a new selection (they're selecting text)
+        const selection = window.getSelection()
+        if (selection && !selection.isCollapsed) {
+          // User has a selection, don't close - let mouseup handle showing new menu
+          return
+        }
+        // Delay closing to next frame so it doesn't race with selection handling
+        requestAnimationFrame(() => {
+          // Check selection again in case it changed
+          const sel = window.getSelection()
+          if (!sel || sel.isCollapsed) {
+            onClose()
+          }
+        })
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    // Use mouseup instead of mousedown to not interfere with text selection
+    document.addEventListener('mouseup', handleClickOutside)
+    return () => document.removeEventListener('mouseup', handleClickOutside)
   }, [onClose])
 
   useEffect(() => {
      onInteractionChange?.(mode === 'note')
-  }, [mode, onInteractionChange])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]) // Only depend on mode, not onInteractionChange to avoid re-triggering
 
   // Reset mode when menu is shown
   useEffect(() => {
@@ -45,6 +60,7 @@ export function ReaderSelectionMenu({ position, onHighlight, onClose, onInteract
   ]
 
   const handleSaveNote = () => {
+    setMode('colors') // Reset mode first so effect fires with false before unmount
     onHighlight('annotation', commentText, true)
     onClose()
   }
