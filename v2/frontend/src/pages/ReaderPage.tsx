@@ -24,6 +24,12 @@ export function ReaderPage() {
   
   // Selection State - stores position relative to container (not viewport)
   const [selectionPos, setSelectionPos] = useState<{ top: number; left: number } | null>(null)
+  const [tempHighlightRects, setTempHighlightRects] = useState<{ top: number; left: number; width: number; height: number }[]>([])
+
+  // Clear temp highlights when menu closes
+  useEffect(() => {
+    if (!selectionPos) setTempHighlightRects([])
+  }, [selectionPos])
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Reader Settings
@@ -373,15 +379,35 @@ export function ReaderPage() {
       >
         {/* Container for absolute positioning of selection menu */}
         <div ref={containerRef} className="relative" onMouseUp={handleMouseUp}>
+          {tempHighlightRects.map((rect, i) => (
+            <div 
+                key={i} 
+                className="absolute z-10 bg-blue-200/50 dark:bg-blue-500/30 pointer-events-none rounded-sm"
+                style={{ top: rect.top, left: rect.left, width: rect.width, height: rect.height }} 
+            />
+          ))}
           <ReaderSelectionMenu 
             position={selectionPos}
             onClose={() => {
                 isMenuInteractingRef.current = false
                 setSelectionPos(null)
+                setTempHighlightRects([])
             }}
             onHighlight={handleHighlight}
             onInteractionChange={(active) => {
                 isMenuInteractingRef.current = active
+                if (active && selectedRangeRef.current && containerRef.current) {
+                    const containerRect = containerRef.current.getBoundingClientRect()
+                    const rects = Array.from(selectedRangeRef.current.getClientRects()).map(r => ({
+                        top: r.top - containerRect.top,
+                        left: r.left - containerRect.left,
+                        width: r.width,
+                        height: r.height
+                    }))
+                    setTempHighlightRects(rects)
+                } else {
+                    setTempHighlightRects([])
+                }
             }}
           />
         <article 
