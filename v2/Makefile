@@ -81,11 +81,25 @@ backend-clean:  ## Clean backend cache files
 # Worker Commands
 # ============================================================================
 
+READABILITY_VERSION ?= latest
+READABILITY_URL = https://cdn.jsdelivr.net/npm/@mozilla/readability@$(READABILITY_VERSION)/Readability.min.js
+
+worker-update-readability:  ## Update Readability.js to latest version
+	@mkdir -p worker/worker/scripts
+	curl -sL "$(READABILITY_URL)" -o worker/worker/scripts/Readability.min.js
+	@echo "Downloaded Readability.js ($(READABILITY_VERSION))"
+
 worker-install:  ## Install worker dependencies
 	cd worker && uv sync
+	@mkdir -p worker/worker/scripts
+	curl -sL "$(READABILITY_URL)" -o worker/worker/scripts/Readability.min.js
+	@echo "Downloaded Readability.js v$(READABILITY_VERSION)"
 
 worker-dev-install:  ## Install worker dev dependencies
 	cd worker && uv sync --all-extras
+	@mkdir -p worker/worker/scripts
+	curl -sL "$(READABILITY_URL)" -o worker/worker/scripts/Readability.min.js
+	@echo "Downloaded Readability.js v$(READABILITY_VERSION)"
 
 worker-browsers:  ## Install Playwright browsers
 	cd worker && uv run playwright install chromium

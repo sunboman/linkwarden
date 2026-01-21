@@ -55,6 +55,7 @@ class Link(SQLModel, table=True):
     title: Optional[str] = None
     description: Optional[str] = None
     content: Optional[str] = None  # Archived readable content
+    image_url: Optional[str] = None  # OG/metadata preview image
     screenshot_path: Optional[str] = None
     favicon_url: Optional[str] = None
     

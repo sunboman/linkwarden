@@ -10,7 +10,7 @@ from .migrate import run_migrations
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args={"check_same_thread": False},  # Needed for SQLite
-    echo=settings.ENVIRONMENT == "development",
+    echo=False,  # Disable SQL logging
 )
 
 
