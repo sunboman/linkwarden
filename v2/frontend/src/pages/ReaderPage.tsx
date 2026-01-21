@@ -117,6 +117,14 @@ export function ReaderPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['links'] })
       queryClient.invalidateQueries({ queryKey: ['link', id] })
+      
+      // If it WAS archived (and now unarchived), go back.
+      // If it WAS NOT archived (and now archived), go to home.
+      if (link?.is_archived) {
+          navigate(-1)
+      } else {
+          navigate('/')
+      }
     },
   })
 
@@ -495,7 +503,7 @@ export function ReaderPage() {
         >
           <Archive className="w-4 h-4" />
           <span className="text-sm font-medium">
-            {link.is_archived ? 'Indexed' : 'Archive'}
+            {link.is_archived ? 'Unarchive' : 'Archive'}
           </span>
         </button>
 
