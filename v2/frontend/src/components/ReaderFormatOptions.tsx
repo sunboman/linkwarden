@@ -138,7 +138,7 @@ export function ReaderFormatOptions({ onSettingsChange, currentSettings }: Reade
                  </div>
               </div>
 
-              </div>
+
 
               {/* Theme Row */}
               <div className="flex items-center justify-between px-3 py-2">
