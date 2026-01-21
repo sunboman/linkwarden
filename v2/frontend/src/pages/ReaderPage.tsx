@@ -264,13 +264,19 @@ export function ReaderPage() {
 
     const onScroll = () => {
       const st = container.scrollTop
-      if (st - 10 > lastScrollTop.current) {
+      const diff = st - lastScrollTop.current
+      
+      // Ignore small movements - this creates an "accumulator" effect for slow scrolls
+      if (Math.abs(diff) < 10) return
+      
+      if (diff > 0) {
         setShowNavbar(false)
-      setSelectionPos(null)
-      setActiveHighlight(null) // Close popover on scroll
-      } else if (st < lastScrollTop.current - 10) {
+        setSelectionPos(null)
+        setActiveHighlight(null)
+      } else {
         setShowNavbar(true)
       }
+      // Only update lastScrollTop when threshold is crossed
       lastScrollTop.current = st <= 0 ? 0 : st
     }
 
