@@ -1,0 +1,85 @@
+"""
+Pydantic schemas for API requests and responses.
+"""
+from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel
+
+
+# Auth schemas
+class UserCreate(BaseModel):
+    """Schema for user registration."""
+    username: str
+    email: str
+    password: str
+
+
+class UserLogin(BaseModel):
+    """Schema for user login."""
+    username: str
+    password: str
+
+
+class Token(BaseModel):
+    """Schema for JWT token response."""
+    access_token: str
+    token_type: str
+
+
+class UserResponse(BaseModel):
+    """Schema for user response."""
+    id: int
+    username: str
+    email: str
+    created_at: datetime
+
+
+# Link schemas
+class LinkCreate(BaseModel):
+    """Schema for creating a link."""
+    url: str
+    tags: Optional[list[str]] = None
+
+
+class LinkUpdate(BaseModel):
+    """Schema for updating a link."""
+    title: Optional[str] = None
+    description: Optional[str] = None
+    is_archived: Optional[bool] = None
+    reading_progress: Optional[float] = None
+    tags: Optional[list[str]] = None
+
+
+class TagResponse(BaseModel):
+    """Schema for tag response."""
+    id: int
+    name: str
+
+
+class LinkResponse(BaseModel):
+    """Schema for link response."""
+    id: int
+    url: str
+    title: Optional[str]
+    description: Optional[str]
+    content: Optional[str]
+    screenshot_path: Optional[str]
+    favicon_url: Optional[str]
+    status: str
+    created_at: datetime
+    updated_at: datetime
+    archived_at: Optional[datetime]
+    is_archived: bool
+    reading_progress: float
+    tags: list[TagResponse]
+    
+    class Config:
+        from_attributes = True
+
+
+class LinkListResponse(BaseModel):
+    """Schema for paginated link list."""
+    links: list[LinkResponse]
+    total: int
+    cursor: Optional[int] = None
