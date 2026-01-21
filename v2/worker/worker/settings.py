@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     """Worker settings."""
     
     DATABASE_URL: str = "sqlite:///../data/linkwarden.db"
-    POLL_INTERVAL: int = 5
+    POLL_INTERVAL: float = 0.5  # seconds
     MAX_RETRIES: int = 3
     SCREENSHOT_DIR: str = "../data/screenshots"
     HEADLESS: bool = True

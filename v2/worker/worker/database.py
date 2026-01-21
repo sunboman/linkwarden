@@ -9,7 +9,7 @@ from .settings import settings
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args={"check_same_thread": False},
-    echo=settings.ENVIRONMENT == "development",
+    echo=False,  # Disable SQL logging
 )
 
 
