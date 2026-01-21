@@ -6,6 +6,7 @@ import { LinksPage } from './pages/LinksPage'
 import { ReaderPage } from './pages/ReaderPage'
 import { AddLinkButton } from './components/AddLinkButton'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { BottomBar } from './components/BottomBar'
 
 function App() {
   const location = useLocation()
@@ -35,12 +36,17 @@ function App() {
           </div>
         )}
         
-        <main className={`flex-1 ${isReaderPage ? '' : 'pb-20 md:pb-0'}`}>
+        <main className={`flex-1 ${isReaderPage ? '' : 'pb-24 md:pb-0'}`}>
           <Routes>
             <Route path="/" element={<LinksPage />} />
             <Route path="/read/:id" element={<ReaderPage />} />
           </Routes>
         </main>
+
+        {/* BottomBar: Visible on mobile only */}
+        {!isReaderPage && (
+          <BottomBar />
+        )}
       </div>
       
       {/* FAB: Only show on links page (not reader, not archive) - AND Mobile Only */}
