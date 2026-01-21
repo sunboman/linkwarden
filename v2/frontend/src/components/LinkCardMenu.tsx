@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { MoreHorizontal, RefreshCw, Archive, Trash2, Edit3 } from 'lucide-react'
 import { api } from '@/lib/api'
@@ -12,13 +13,19 @@ interface LinkCardMenuProps {
 export function LinkCardMenu({ link, onEdit }: LinkCardMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [coords, setCoords] = useState({ top: 0, left: 0 })
   const menuRef = useRef<HTMLDivElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const queryClient = useQueryClient()
 
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      const target = event.target as Node
+      const inMenu = menuRef.current?.contains(target)
+      const inDropdown = dropdownRef.current?.contains(target)
+
+      if (!inMenu && !inDropdown) {
         setIsOpen(false)
         setShowDeleteConfirm(false)
       }
@@ -26,6 +33,15 @@ export function LinkCardMenu({ link, onEdit }: LinkCardMenuProps) {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // Handle scroll to close menu (simplest way to avoid detached floating menu)
+  useEffect(() => {
+      if (!isOpen) return
+      const handleScroll = () => setIsOpen(false)
+      window.addEventListener('scroll', handleScroll, { capture: true })
+      return () => window.removeEventListener('scroll', handleScroll, { capture: true })
+  }, [isOpen])
+
 
   const refreshMutation = useMutation({
     mutationFn: () => api.refreshLink(link.id),
@@ -62,6 +78,19 @@ export function LinkCardMenu({ link, onEdit }: LinkCardMenuProps) {
     if (!isOpen) setShowDeleteConfirm(false)
   }, [isOpen])
 
+  const toggleOpen = () => {
+      if (!isOpen && menuRef.current) {
+          const rect = menuRef.current.getBoundingClientRect()
+          setCoords({
+              top: rect.bottom + 4,
+              left: rect.right
+          })
+          setIsOpen(true)
+      } else {
+          setIsOpen(false)
+      }
+  }
+
   const menuItems = link.is_archived
     ? [
         {
@@ -70,8 +99,6 @@ export function LinkCardMenu({ link, onEdit }: LinkCardMenuProps) {
           onClick: () => archiveMutation.mutate(),
           loading: archiveMutation.isPending,
         },
-        // User requested ONLY Unarchive and Delete for archived links
-        // So we skip Refresh and Edit
       ]
     : [
         {
@@ -95,12 +122,6 @@ export function LinkCardMenu({ link, onEdit }: LinkCardMenuProps) {
           },
         },
       ]
-      
-  // Always append Delete (it's handled separately in render logic but we put it in list for consistency if we wanted loop)
-  // Actually, the render logic below iterates `menuItems` and validly handles them. 
-  // However, `Delete` is special-cased in the JSX below.
-  // The JSX renders `menuItems.map` AND THEN the delete button.
-  // So I just need to define the non-delete items above.
 
   return (
     <div 
@@ -113,19 +134,26 @@ export function LinkCardMenu({ link, onEdit }: LinkCardMenuProps) {
         onClick={(e) => {
           e.stopPropagation()
           e.preventDefault()
-          setIsOpen(!isOpen)
+          toggleOpen()
         }}
         onMouseDown={(e) => e.stopPropagation()}
-        className="p-1.5 rounded-lg bg-black/20 dark:bg-black/40 backdrop-blur-sm
-                   hover:bg-black/30 dark:hover:bg-black/50 transition-colors text-white"
+        className={`p-1.5 rounded-lg bg-black/20 dark:bg-black/40 
+                   hover:bg-black/30 dark:hover:bg-black/50 transition-colors text-white backdrop-blur-sm
+                   ${isOpen ? 'bg-black/40 dark:bg-black/60' : ''}`}
         aria-label="Link options"
       >
         <MoreHorizontal className="w-4 h-4" />
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <div 
-          className="absolute right-0 top-full mt-1 w-40 py-1 glass-card shadow-lg z-50 rounded-xl overflow-hidden"
+          ref={dropdownRef}
+          className="fixed w-40 py-1 glass-card shadow-lg z-[9999] rounded-xl overflow-hidden"
+          style={{ 
+              top: coords.top, 
+              left: coords.left,
+              transform: 'translateX(-100%)' // Align right edge to button right edge
+          }}
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
         >
@@ -199,7 +227,8 @@ export function LinkCardMenu({ link, onEdit }: LinkCardMenuProps) {
               </div>
             </div>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
