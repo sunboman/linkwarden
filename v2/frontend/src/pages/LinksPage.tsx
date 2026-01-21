@@ -7,7 +7,16 @@ export function LinksPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['links'],
     queryFn: () => api.getLinks(0, false),
+    // Auto-refetch every 2 seconds if there are pending links
+    refetchInterval: (query) => {
+      const links = query.state.data?.links || []
+      const hasPending = links.some(link => link.status === 'pending')
+      return hasPending ? 2000 : false
+    },
   })
+
+  // Debug: Log data to console
+  console.log('Frontend Links Data:', data)
 
   if (isLoading) {
     return (
@@ -43,7 +52,7 @@ export function LinksPage() {
       {/* Grid of links - Apple News style */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {data.links.map((link) => (
-          <LinkCard key={link.id} link={link} />
+          <LinkCard key={`${link.id}-${link.image_url || ''}-${link.status}`} link={link} />
         ))}
       </div>
     </div>

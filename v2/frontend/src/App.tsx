@@ -3,6 +3,7 @@ import { Navbar } from './components/Navbar'
 import { LinksPage } from './pages/LinksPage'
 import { ReaderPage } from './pages/ReaderPage'
 import { AddLinkButton } from './components/AddLinkButton'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 function App() {
   const location = useLocation()
@@ -22,6 +23,8 @@ function App() {
       
       {/* Only show add button on links page */}
       {!isReaderPage && <AddLinkButton />}
+      
+      <ReactQueryDevtools initialIsOpen={false} />
     </div>
   )
 }

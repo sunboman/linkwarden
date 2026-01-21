@@ -64,6 +64,7 @@ class LinkResponse(BaseModel):
     title: Optional[str]
     description: Optional[str]
     content: Optional[str]
+    image_url: Optional[str]
     screenshot_path: Optional[str]
     favicon_url: Optional[str]
     status: str

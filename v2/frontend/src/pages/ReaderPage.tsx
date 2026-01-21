@@ -23,7 +23,7 @@ export function ReaderPage() {
     mutationFn: () => api.updateLink(Number(id), { is_archived: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['links'] })
-      navigate('/')
+      queryClient.invalidateQueries({ queryKey: ['link', id] })
     },
   })
 

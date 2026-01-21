@@ -30,5 +30,13 @@ class Settings(BaseSettings):
         path.mkdir(parents=True, exist_ok=True)
         return path
 
+    @property
+    def preview_path(self) -> Path:
+        """Get absolute preview directory path."""
+        # Use same parent as screenshot dir but 'previews' folder
+        path = self.screenshot_path.parent / "previews"
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
 
 settings = Settings()

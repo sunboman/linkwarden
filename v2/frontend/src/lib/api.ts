@@ -77,7 +77,7 @@ export const api = {
 		return res.json()
 	},
 
-	async updateLink(id: number, data: Partial<Pick<Link, 'title' | 'description' | 'is_archived' | 'reading_progress'>>) {
+	async updateLink(id: number, data: Partial<Pick<Link, 'title' | 'description' | 'is_archived' | 'reading_progress'>> & { tags?: string[] }) {
 		const res = await fetch(`${API_BASE}/links/${id}`, {
 			method: 'PUT',
 			headers: {
@@ -104,6 +104,14 @@ export const api = {
 			headers: getAuthHeader(),
 		})
 		if (!res.ok) throw new Error('Failed to refresh link')
+		return res.json()
+	},
+
+	async getTags(): Promise<{ id: number; name: string }[]> {
+		const res = await fetch(`${API_BASE}/tags`, {
+			headers: getAuthHeader(),
+		})
+		if (!res.ok) throw new Error('Failed to fetch tags')
 		return res.json()
 	},
 }
