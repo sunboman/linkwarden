@@ -57,8 +57,9 @@ export function ReaderSelectionMenu({ position, onHighlight, onClose, onInteract
   return (
     <div
       ref={menuRef}
-      className="fixed z-50"
+      className="absolute z-50"
       style={{ 
+        // Position is already relative to container
         top: position.top, 
         left: position.left, 
         transform: 'translateX(-50%) translateY(-100%) translateY(-8px)'

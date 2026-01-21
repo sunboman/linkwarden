@@ -49,6 +49,7 @@ certificates
 
 # generated files and folders
 /data
+v2/data
 /data.ms
 meilisearch
 meili_data

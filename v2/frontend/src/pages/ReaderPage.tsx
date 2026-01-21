@@ -22,8 +22,9 @@ export function ReaderPage() {
   const [showNavbar, setShowNavbar] = useState(true)
   const { setTheme, themePreference } = useTheme()
   
-  // Selection State
+  // Selection State - stores position relative to container (not viewport)
   const [selectionPos, setSelectionPos] = useState<{ top: number; left: number } | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Reader Settings
   const [settings, setSettings] = useState<ReaderSettings>(() => {
@@ -121,38 +122,36 @@ export function ReaderPage() {
     },
   })
 
-  // Handle Selection
-  useEffect(() => {
-    const handleSelection = () => {
-        // If interacting with menu (e.g. typing comment), ignore selection changes
-        if (isMenuInteractingRef.current) return
-
-        const selection = window.getSelection()
-        if (!selection || selection.isCollapsed || !contentRef.current?.contains(selection.anchorNode)) {
-            // Only clear if not interacting
-            if (!isMenuInteractingRef.current) {
-                setSelectionPos(null)
-            }
-            return
-        }
-
-        const range = selection.getRangeAt(0)
-        const rect = range.getBoundingClientRect()
-        
-        // Only show if selection is inside article
-        if (contentRef.current.contains(range.commonAncestorContainer)) {
-             // Clone range to preserve it even when selection clears
-             selectedRangeRef.current = range.cloneRange()
-             setSelectionPos({ top: rect.top, left: rect.left + rect.width / 2 })
-        } else {
-             setSelectionPos(null)
-             selectedRangeRef.current = null
-        }
-    }
-
-    document.addEventListener('selectionchange', handleSelection)
-    return () => document.removeEventListener('selectionchange', handleSelection)
-  }, [])
+  // Handle Selection on mouse up (like v1)
+  const handleMouseUp = (e: React.MouseEvent) => {
+      // If interacting with menu (e.g. typing comment), ignore
+      if (isMenuInteractingRef.current) return
+      
+      // Don't handle if clicking on a highlight
+      const target = e.target as HTMLElement
+      if (target.closest('.highlight')) return
+      
+      const selection = window.getSelection()
+      if (!selection || selection.isCollapsed || !contentRef.current?.contains(selection.anchorNode)) {
+          return
+      }
+      
+      const range = selection.getRangeAt(0)
+      const rect = range.getBoundingClientRect()
+      const containerRect = containerRef.current?.getBoundingClientRect()
+      
+      if (!containerRect) return
+      
+      // Only show if selection is inside article
+      if (contentRef.current.contains(range.commonAncestorContainer)) {
+           // Clone range to preserve it
+           selectedRangeRef.current = range.cloneRange()
+           // Store position RELATIVE to container (for absolute positioning)
+           const relativeX = rect.left - containerRect.left + rect.width / 2
+           const relativeY = rect.top - containerRect.top
+           setSelectionPos({ top: relativeY, left: relativeX })
+      }
+  }
 
   // Highlights List toggle
   const [showHighlights, setShowHighlights] = useState(false)
@@ -161,7 +160,51 @@ export function ReaderPage() {
   // Active highlight popover state
   const [activeHighlight, setActiveHighlight] = useState<{ id: string; comment?: string; rect: DOMRect } | null>(null)
 
+  // Temporary visual highlight for selection during note mode
+  const [tempHighlightActive, setTempHighlightActive] = useState(false)
+  
+  // Apply/remove temporary highlight when entering/leaving note mode
+  const applyTempHighlight = () => {
+      const range = selectedRangeRef.current
+      if (!range || !contentRef.current) return
+      
+      try {
+          // Create a temporary highlight span
+          const tempSpan = document.createElement('span')
+          tempSpan.className = 'temp-selection-highlight bg-blue-200/60 dark:bg-blue-500/40 rounded-sm'
+          tempSpan.id = 'temp-highlight'
+          range.surroundContents(tempSpan)
+          setTempHighlightActive(true)
+      } catch (e) {
+          // Selection may span multiple elements
+          console.warn('Could not apply temp highlight', e)
+      }
+  }
+  
+  const removeTempHighlight = () => {
+      const tempEl = document.getElementById('temp-highlight')
+      if (tempEl && contentRef.current) {
+          const text = tempEl.textContent || ''
+          const textNode = document.createTextNode(text)
+          tempEl.parentNode?.replaceChild(textNode, tempEl)
+          
+          // Re-select the text so the range is valid again
+          const selection = window.getSelection()
+          if (selection) {
+              const newRange = document.createRange()
+              newRange.selectNodeContents(textNode)
+              selectedRangeRef.current = newRange
+          }
+      }
+      setTempHighlightActive(false)
+  }
+
   const handleHighlight = async (color: string, comment?: string, isAnnotation?: boolean) => {
+      // Remove temp highlight first if it exists
+      if (tempHighlightActive) {
+          removeTempHighlight()
+      }
+      
       // Use stored range as selection might be in textarea
       const range = selectedRangeRef.current
       if (!range) return
@@ -261,8 +304,8 @@ export function ReaderPage() {
       const st = container.scrollTop
       if (st - 10 > lastScrollTop.current) {
         setShowNavbar(false)
-        setSelectionPos(null)
-        setActiveHighlight(null) // Close popover on scroll
+      setSelectionPos(null)
+      setActiveHighlight(null) // Close popover on scroll
       } else if (st < lastScrollTop.current - 10) {
         setShowNavbar(true)
       }
@@ -298,17 +341,7 @@ export function ReaderPage() {
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 transition-colors duration-300">
       
-      <ReaderSelectionMenu 
-        position={selectionPos}
-        onClose={() => {
-            isMenuInteractingRef.current = false
-            setSelectionPos(null)
-        }}
-        onHighlight={handleHighlight}
-        onInteractionChange={(active) => {
-            isMenuInteractingRef.current = active
-        }}
-      />
+
 
       <HighlightPopover
         highlight={activeHighlight}
@@ -382,6 +415,28 @@ export function ReaderPage() {
         }}
         className="h-screen overflow-y-auto"
       >
+        {/* Container for absolute positioning of selection menu */}
+        <div ref={containerRef} className="relative" onMouseUp={handleMouseUp}>
+          <ReaderSelectionMenu 
+            position={selectionPos}
+            onClose={() => {
+                isMenuInteractingRef.current = false
+                setSelectionPos(null)
+                if (tempHighlightActive) {
+                    removeTempHighlight()
+                }
+            }}
+            onHighlight={handleHighlight}
+            onInteractionChange={(active) => {
+                isMenuInteractingRef.current = active
+                // Apply/remove temp highlight when entering/leaving note mode
+                if (active) {
+                    applyTempHighlight()
+                } else if (tempHighlightActive) {
+                    removeTempHighlight()
+                }
+            }}
+          />
         <article 
             onClick={handleArticleClick}
             className={`${getWidthClass()} reader-content prose prose-neutral dark:prose-invert mx-auto px-4 py-8 pt-20 ${getFontClass()} transition-all duration-300`} 
@@ -436,6 +491,7 @@ export function ReaderPage() {
             </div>
           )}
         </article>
+        </div>{/* Close containerRef */}
       </div>
 
       {/* Floating Action Pill - bottom center, hides on scroll */}
