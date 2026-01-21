@@ -1,17 +1,67 @@
+
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { ArrowLeft, ExternalLink, Archive, Loader2 } from 'lucide-react'
-import { Navbar } from '@/components/Navbar'
+import { ArrowLeft, ExternalLink, Archive, Loader2, Trash2, List } from 'lucide-react'
+import { ReaderFormatOptions, type ReaderSettings } from '@/components/ReaderFormatOptions'
+import {  ReaderSelectionMenu } from '@/components/ReaderSelectionMenu'
+import { ReaderHighlightsList } from '@/components/ReaderHighlightsList'
+import { HighlightPopover } from '@/components/HighlightPopover'
+import { useTheme } from '@/hooks/useTheme'
 
 export function ReaderPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const lastScrollTop = useRef(0)
+  const touchStart = useRef<{x: number, y: number} | null>(null)
+  const isMenuInteractingRef = useRef(false)
   const [showNavbar, setShowNavbar] = useState(true)
+  const { setTheme, themePreference } = useTheme()
+  
+  // Selection State
+  const [selectionPos, setSelectionPos] = useState<{ top: number; left: number } | null>(null)
+
+  // Reader Settings
+  const [settings, setSettings] = useState<ReaderSettings>(() => {
+    const saved = localStorage.getItem('reader-settings')
+    const defaults: ReaderSettings = { font: 'sans', fontSize: 100, lineHeight: 1.6, lineWidth: 'normal', theme: themePreference }
+    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults
+  })
+
+  // ... effects ...
+  
+  const getFontClass = () => {
+    switch (settings.font) {
+        case 'serif': case 'lora': return 'font-serif'
+        case 'mono': return 'font-mono'
+        case 'inter': return 'font-sans' 
+        default: return 'font-sans'
+    }
+  }
+
+  const getWidthClass = () => {
+      switch(settings.lineWidth) {
+          case 'narrow': return 'max-w-xl'
+          case 'wide': return 'max-w-5xl'
+          default: return 'max-w-3xl' // Normal
+      }
+  }
+
+  useEffect(() => {
+    localStorage.setItem('reader-settings', JSON.stringify(settings))
+    if (settings.theme !== themePreference) {
+        setTheme(settings.theme)
+    }
+  }, [settings, setTheme, themePreference])
+
+  useEffect(() => {
+      setSettings(prev => prev.theme !== themePreference ? { ...prev, theme: themePreference } : prev)
+  }, [themePreference])
+
 
   const { data: link, isLoading, error } = useQuery({
     queryKey: ['link', id],
@@ -19,13 +69,188 @@ export function ReaderPage() {
     enabled: !!id,
   })
 
+  const updateContentMutation = useMutation({
+    mutationFn: (newContent: string) => api.updateLink(Number(id), { content: newContent }),
+    onMutate: async (newContent) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['link', id] })
+      
+      // Snapshot previous value
+      const previousLink = queryClient.getQueryData(['link', id])
+      
+      // Optimistically update cache
+      queryClient.setQueryData(['link', id], (old: any) => ({
+        ...old,
+        content: newContent
+      }))
+      
+      return { previousLink }
+    },
+    onError: (_err, _newContent, context) => {
+      // Rollback on error
+      if (context?.previousLink) {
+        queryClient.setQueryData(['link', id], context.previousLink)
+      }
+    },
+    onSettled: () => {
+      // Don't invalidate immediately - the cache is already up to date
+      // Optionally refetch in background after a delay
+    },
+  })
+  
+  // Workaround for Partial<Link> type if 'content' is not in Update schema? 
+  // Warning: Schema LinkUpdate in backend might default params. 
+  // Step 1644 showed LinkUpdate has title, description, is_archived, reading_progress, tags. 
+  // It MISSES 'content'. 
+  // I need to update backend schema to allow updating content if I want to persist highlights!
+  // I'll proceed keeping this in mind.
+
   const archiveMutation = useMutation({
-    mutationFn: () => api.updateLink(Number(id), { is_archived: true }),
+    mutationFn: () => api.updateLink(Number(id), { is_archived: !link?.is_archived }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['links'] })
       queryClient.invalidateQueries({ queryKey: ['link', id] })
     },
   })
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.deleteLink(Number(id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['links'] })
+      navigate('/')
+    },
+  })
+
+  // Handle Selection
+  useEffect(() => {
+    const handleSelection = () => {
+        // If interacting with menu (e.g. typing comment), ignore selection changes
+        if (isMenuInteractingRef.current) return
+
+        const selection = window.getSelection()
+        if (!selection || selection.isCollapsed || !contentRef.current?.contains(selection.anchorNode)) {
+            // Only clear if not interacting
+            if (!isMenuInteractingRef.current) {
+                setSelectionPos(null)
+            }
+            return
+        }
+
+        const range = selection.getRangeAt(0)
+        const rect = range.getBoundingClientRect()
+        
+        // Only show if selection is inside article
+        if (contentRef.current.contains(range.commonAncestorContainer)) {
+             // Clone range to preserve it even when selection clears
+             selectedRangeRef.current = range.cloneRange()
+             setSelectionPos({ top: rect.top, left: rect.left + rect.width / 2 })
+        } else {
+             setSelectionPos(null)
+             selectedRangeRef.current = null
+        }
+    }
+
+    document.addEventListener('selectionchange', handleSelection)
+    return () => document.removeEventListener('selectionchange', handleSelection)
+  }, [])
+
+  // Highlights List toggle
+  const [showHighlights, setShowHighlights] = useState(false)
+  const selectedRangeRef = useRef<Range | null>(null)
+  
+  // Active highlight popover state
+  const [activeHighlight, setActiveHighlight] = useState<{ id: string; comment?: string; rect: DOMRect } | null>(null)
+
+  const handleHighlight = async (color: string, comment?: string, isAnnotation?: boolean) => {
+      // Use stored range as selection might be in textarea
+      const range = selectedRangeRef.current
+      if (!range) return
+
+      const span = document.createElement('span')
+      
+      let bgClass = ''
+      if (isAnnotation) {
+          // Annotation style: yellow background + underline
+          bgClass = 'bg-yellow-200/50 dark:bg-yellow-500/30 underline decoration-2 decoration-yellow-600 dark:decoration-yellow-400'
+      } else {
+          switch(color) {
+              case 'yellow': bgClass = 'bg-yellow-200/50 dark:bg-yellow-500/30'; break;
+              case 'green': bgClass = 'bg-green-200/50 dark:bg-green-500/30'; break;
+              case 'red': bgClass = 'bg-red-200/50 dark:bg-red-500/30'; break;
+              case 'blue': bgClass = 'bg-blue-200/50 dark:bg-blue-500/30'; break;
+          }
+      }
+      
+      const hlId = `hl-${Date.now()}`
+      span.className = `highlight ${bgClass} rounded-sm px-0.5 cursor-pointer`
+      span.dataset.highlight = 'true'
+      span.id = hlId
+      if (comment) span.dataset.comment = comment
+      if (isAnnotation) span.dataset.annotation = 'true'
+      
+      try {
+          range.surroundContents(span)
+          window.getSelection()?.removeAllRanges()
+          
+          setSelectionPos(null)
+          selectedRangeRef.current = null
+          isMenuInteractingRef.current = false
+          
+          // Persist
+          if (contentRef.current) {
+             updateContentMutation.mutate(contentRef.current.innerHTML) 
+          }
+      } catch (e) {
+          console.error("Highlight failed", e)
+      }
+  }
+
+  const handleDeleteHighlight = (id: string) => {
+      const el = document.getElementById(id)
+      if (!el || !contentRef.current) return
+      
+      // Preserve the text content
+      const text = el.textContent || ''
+      const textNode = document.createTextNode(text)
+      el.parentNode?.replaceChild(textNode, el)
+      
+      // Persist
+      updateContentMutation.mutate(contentRef.current.innerHTML)
+  }
+
+  // Handle clicks on existing highlights
+  const handleArticleClick = (e: React.MouseEvent) => {
+      // Don't interfere if user has text selected
+      const selection = window.getSelection()
+      if (selection && !selection.isCollapsed) return
+      
+      const target = e.target as HTMLElement
+      const highlightEl = target.closest('.highlight') as HTMLElement
+      
+      if (highlightEl && highlightEl.dataset.highlight) {
+          const rect = highlightEl.getBoundingClientRect()
+          setActiveHighlight({
+              id: highlightEl.id,
+              comment: highlightEl.dataset.comment,
+              rect
+          })
+      }
+  }
+
+  const handleJumpToHighlight = (id: string) => {
+      setShowHighlights(false)
+      setTimeout(() => {
+          const el = document.getElementById(id)
+          if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              el.classList.add('ring-2', 'ring-primary', 'ring-offset-2')
+              setTimeout(() => {
+                  el.classList.remove('ring-2', 'ring-primary', 'ring-offset-2')
+              }, 2000)
+          }
+      }, 300)
+  }
+
 
   // Hide navbar on scroll down, show on scroll up
   useEffect(() => {
@@ -36,6 +261,8 @@ export function ReaderPage() {
       const st = container.scrollTop
       if (st - 10 > lastScrollTop.current) {
         setShowNavbar(false)
+        setSelectionPos(null)
+        setActiveHighlight(null) // Close popover on scroll
       } else if (st < lastScrollTop.current - 10) {
         setShowNavbar(true)
       }
@@ -44,7 +271,7 @@ export function ReaderPage() {
 
     container.addEventListener('scroll', onScroll, { passive: true })
     return () => container.removeEventListener('scroll', onScroll)
-  }, [])
+  }, []) // eslint-disable-line
 
   if (isLoading) {
     return (
@@ -64,12 +291,42 @@ export function ReaderPage() {
 
   const hostname = new URL(link.url).hostname.replace('www.', '')
 
+  // ... (keeping effects)
+
+
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 transition-colors duration-300">
+      
+      <ReaderSelectionMenu 
+        position={selectionPos}
+        onClose={() => {
+            isMenuInteractingRef.current = false
+            setSelectionPos(null)
+        }}
+        onHighlight={handleHighlight}
+        onInteractionChange={(active) => {
+            isMenuInteractingRef.current = active
+        }}
+      />
+
+      <HighlightPopover
+        highlight={activeHighlight}
+        onClose={() => setActiveHighlight(null)}
+        onDelete={handleDeleteHighlight}
+      />
+
+       <ReaderHighlightsList 
+          isOpen={showHighlights}
+          onClose={() => setShowHighlights(false)}
+          htmlContent={link.content || ''}
+          onJumpTo={handleJumpToHighlight}
+       />
+
       {/* Top Navbar - hides on scroll */}
       <div
-        className={`fixed top-0 left-0 right-0 z-10 transition-transform duration-300 ease-in-out
-                   ${showNavbar ? 'translate-y-0' : '-translate-y-full'}`}
+        className={`fixed top-0 left-0 right-0 z-20 transition-all duration-300 ease-in-out
+                   ${showNavbar ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}
       >
         <div className="glass-nav h-14 flex items-center gap-2 px-3">
           <button
@@ -85,17 +342,54 @@ export function ReaderPage() {
             </p>
           </div>
 
-          <Navbar />
+          <button
+            onClick={() => setShowHighlights(!showHighlights)}
+            className={`p-2 rounded-full transition-colors ${showHighlights ? 'bg-primary text-primary-foreground' : 'hover:bg-black/5 dark:hover:bg-white/10'}`}
+          >
+             <List className="w-5 h-5" />
+          </button>
+
+          <ReaderFormatOptions 
+            currentSettings={settings}
+            onSettingsChange={(newSettings) => setSettings(newSettings)}
+          />
         </div>
       </div>
 
       {/* Main content area with scroll */}
       <div
         ref={scrollRef}
-        className={`overflow-y-auto transition-all duration-300 ease-in-out
-                   ${showNavbar ? 'h-[calc(100vh-3.5rem)] mt-14' : 'h-screen mt-0'}`}
+        onTouchStart={(e) => {
+            touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+        }}
+        onTouchEnd={(e) => {
+            if (!touchStart.current) return
+            const dx = e.changedTouches[0].clientX - touchStart.current.x
+            const dy = e.changedTouches[0].clientY - touchStart.current.y
+            const dist = Math.sqrt(dx*dx + dy*dy)
+            
+            if (dist < 10) { // Tap detection
+                if ((e.target as HTMLElement).tagName !== 'BUTTON' && 
+                    !(e.target as HTMLElement).closest('button') &&
+                    !(e.target as HTMLElement).closest('.reader-menu')) {
+                     
+                     if (window.getSelection()?.toString().length === 0) {
+                        setShowNavbar(prev => !prev)
+                     }
+                }
+            }
+            touchStart.current = null
+        }}
+        className="h-screen overflow-y-auto"
       >
-        <article className="max-w-3xl mx-auto px-4 py-8">
+        <article 
+            onClick={handleArticleClick}
+            className={`${getWidthClass()} reader-content prose prose-neutral dark:prose-invert mx-auto px-4 py-8 pt-20 ${getFontClass()} transition-all duration-300`} 
+            style={{ 
+                '--reader-font-size': `${settings.fontSize / 100}rem`, 
+                '--reader-line-height': settings.lineHeight 
+            } as React.CSSProperties}
+        >
           {/* Title */}
           <h1 className="text-2xl sm:text-3xl font-bold mb-4 leading-tight">
             {link.title || 'Untitled'}
@@ -112,10 +406,11 @@ export function ReaderPage() {
           {/* Content */}
           {link.content ? (
             <div
-              className="prose prose-neutral dark:prose-invert max-w-none
+              ref={contentRef}
+              className={`prose prose-neutral dark:prose-invert max-w-none
                          prose-headings:font-semibold
                          prose-a:text-blue-600 dark:prose-a:text-blue-400
-                         prose-img:rounded-xl"
+                         prose-img:rounded-xl`}
               dangerouslySetInnerHTML={{ __html: link.content }}
             />
           ) : link.status === 'failed' ? (
@@ -145,7 +440,7 @@ export function ReaderPage() {
 
       {/* Floating Action Pill - bottom center, hides on scroll */}
       <div
-        className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 px-3 py-2 rounded-full
+        className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 px-3 py-2 rounded-full
                    glass-card shadow-lg transition-all duration-300 ease-in-out
                    ${showNavbar ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'}`}
       >
@@ -164,15 +459,31 @@ export function ReaderPage() {
         
         <button
           onClick={() => archiveMutation.mutate()}
-          disabled={archiveMutation.isPending || link.is_archived}
+          disabled={archiveMutation.isPending}
           className="flex items-center gap-1.5 px-3 py-2 rounded-full
                      hover:bg-black/5 dark:hover:bg-white/10 transition-colors
                      disabled:opacity-50"
         >
           <Archive className="w-4 h-4" />
           <span className="text-sm font-medium">
-            {link.is_archived ? 'Archived' : 'Archive'}
+            {link.is_archived ? 'Indexed' : 'Archive'}
           </span>
+        </button>
+
+        <div className="w-px h-5 bg-neutral-300 dark:bg-neutral-600" />
+
+        <button
+          onClick={() => {
+            if (confirm('Are you sure you want to delete this link?')) {
+                deleteMutation.mutate()
+            }
+          }}
+          disabled={deleteMutation.isPending}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-full
+                     hover:bg-red-50 dark:hover:bg-red-900/10 text-red-500 transition-colors
+                     disabled:opacity-50"
+        >
+          <Trash2 className="w-4 h-4" />
         </button>
       </div>
     </div>

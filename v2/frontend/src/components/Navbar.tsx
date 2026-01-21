@@ -29,7 +29,7 @@ export function Navbar() {
 
   return (
     <nav className="glass-nav h-16 flex items-center justify-between px-4">
-      <h1 className="text-lg font-semibold">Linkwarden</h1>
+      <h1 className="text-lg font-semibold">Michi-reader</h1>
       
       <div className="relative" ref={dropdownRef}>
         <button

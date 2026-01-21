@@ -78,7 +78,7 @@ export const api = {
 		return res.json()
 	},
 
-	async updateLink(id: number, data: Partial<Pick<Link, 'title' | 'description' | 'is_archived' | 'reading_progress'>> & { tags?: string[] }) {
+	async updateLink(id: number, data: Partial<Pick<Link, 'title' | 'description' | 'is_archived' | 'reading_progress' | 'content'>> & { tags?: string[] }) {
 		const res = await fetch(`${API_BASE}/links/${id}`, {
 			method: 'PUT',
 			headers: {

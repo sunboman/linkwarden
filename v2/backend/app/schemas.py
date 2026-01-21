@@ -48,6 +48,7 @@ class LinkUpdate(BaseModel):
     description: Optional[str] = None
     is_archived: Optional[bool] = None
     reading_progress: Optional[float] = None
+    content: Optional[str] = None
     tags: Optional[list[str]] = None
 
 

@@ -100,6 +100,32 @@
   .status-failed {
     @apply bg-red-400;
   }
+
+  /* Dynamic Reader Content Overrides */
+  .reader-content.prose :where(p, li, blockquote, a, strong, em, span) {
+    font-size: var(--reader-font-size, 1rem) !important;
+    line-height: var(--reader-line-height, 1.6) !important;
+  }
+
+  .reader-content.prose :where(h1) {
+    font-size: calc(var(--reader-font-size, 1rem) * 2.25) !important;
+    line-height: 1.2 !important;
+  }
+
+  .reader-content.prose :where(h2) {
+    font-size: calc(var(--reader-font-size, 1rem) * 1.75) !important;
+    line-height: 1.3 !important;
+  }
+
+  .reader-content.prose :where(h3) {
+    font-size: calc(var(--reader-font-size, 1rem) * 1.5) !important;
+    line-height: 1.4 !important;
+  }
+
+  .reader-content.prose :where(h4, h5, h6) {
+    font-size: calc(var(--reader-font-size, 1rem) * 1.25) !important;
+    line-height: 1.5 !important;
+  }
 }
 
 @layer utilities {
