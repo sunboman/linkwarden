@@ -39,7 +39,7 @@ export function LinkCardMenu({ link, onEdit }: LinkCardMenuProps) {
   })
 
   const archiveMutation = useMutation({
-    mutationFn: () => api.updateLink(link.id, { is_archived: true }),
+    mutationFn: () => api.updateLink(link.id, { is_archived: !link.is_archived }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['links'] })
       setIsOpen(false)
@@ -62,28 +62,45 @@ export function LinkCardMenu({ link, onEdit }: LinkCardMenuProps) {
     if (!isOpen) setShowDeleteConfirm(false)
   }, [isOpen])
 
-  const menuItems = [
-    {
-      label: 'Refresh',
-      icon: RefreshCw,
-      onClick: () => refreshMutation.mutate(),
-      loading: refreshMutation.isPending,
-    },
-    {
-      label: 'Archive',
-      icon: Archive,
-      onClick: () => archiveMutation.mutate(),
-      loading: archiveMutation.isPending,
-    },
-    {
-      label: 'Edit',
-      icon: Edit3,
-      onClick: () => {
-        onEdit?.()
-        setIsOpen(false)
-      },
-    },
-  ]
+  const menuItems = link.is_archived
+    ? [
+        {
+          label: 'Unarchive',
+          icon: Archive,
+          onClick: () => archiveMutation.mutate(),
+          loading: archiveMutation.isPending,
+        },
+        // User requested ONLY Unarchive and Delete for archived links
+        // So we skip Refresh and Edit
+      ]
+    : [
+        {
+          label: 'Refresh',
+          icon: RefreshCw,
+          onClick: () => refreshMutation.mutate(),
+          loading: refreshMutation.isPending,
+        },
+        {
+          label: 'Archive',
+          icon: Archive,
+          onClick: () => archiveMutation.mutate(),
+          loading: archiveMutation.isPending,
+        },
+        {
+          label: 'Edit',
+          icon: Edit3,
+          onClick: () => {
+            onEdit?.()
+            setIsOpen(false)
+          },
+        },
+      ]
+      
+  // Always append Delete (it's handled separately in render logic but we put it in list for consistency if we wanted loop)
+  // Actually, the render logic below iterates `menuItems` and validly handles them. 
+  // However, `Delete` is special-cased in the JSX below.
+  // The JSX renders `menuItems.map` AND THEN the delete button.
+  // So I just need to define the non-delete items above.
 
   return (
     <div 

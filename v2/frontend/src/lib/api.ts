@@ -45,9 +45,10 @@ export const api = {
 	},
 
 	// Links
-	async getLinks(cursor = 0, archived?: boolean): Promise<LinkListResponse> {
+	async getLinks(cursor = 0, archived?: boolean, tag?: string): Promise<LinkListResponse> {
 		const params = new URLSearchParams({ cursor: cursor.toString() })
 		if (archived !== undefined) params.set('archived', archived.toString())
+		if (tag) params.set('tag', tag)
 
 		const res = await fetch(`${API_BASE}/links?${params}`, {
 			headers: getAuthHeader(),

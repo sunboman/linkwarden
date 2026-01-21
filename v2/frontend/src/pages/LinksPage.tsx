@@ -1,12 +1,18 @@
+import { useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { LinkCard } from '@/components/LinkCard'
 import { Loader2 } from 'lucide-react'
 
 export function LinksPage() {
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  const isArchived = params.get('archived') === 'true'
+  const tag = params.get('tag') || undefined
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['links'],
-    queryFn: () => api.getLinks(0, false),
+    queryKey: ['links', isArchived, tag],
+    queryFn: () => api.getLinks(0, isArchived, tag),
     // Auto-refetch every 2 seconds if there are pending links
     refetchInterval: (query) => {
       const links = query.state.data?.links || []
@@ -14,9 +20,6 @@ export function LinksPage() {
       return hasPending ? 2000 : false
     },
   })
-
-  // Debug: Log data to console
-  console.log('Frontend Links Data:', data)
 
   if (isLoading) {
     return (

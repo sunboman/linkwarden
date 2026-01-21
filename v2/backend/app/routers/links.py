@@ -57,6 +57,7 @@ async def list_links(
     limit: int = Query(50, le=100, description="Number of items to return"),
     archived: Optional[bool] = Query(None, description="Filter by archived status"),
     status_filter: Optional[str] = Query(None, description="Filter by status"),
+    tag: Optional[str] = Query(None, description="Filter by tag name"),
 ):
     """List links with pagination."""
     # Build query
@@ -68,6 +69,9 @@ async def list_links(
     if status_filter:
         statement = statement.where(Link.status == status_filter)
     
+    if tag:
+        statement = statement.join(Link.tags).where(Tag.name == tag)
+    
     statement = statement.order_by(Link.created_at.desc())
     
     # Get total count
@@ -76,6 +80,8 @@ async def list_links(
         count_statement = count_statement.where(Link.is_archived == archived)
     if status_filter:
         count_statement = count_statement.where(Link.status == status_filter)
+    if tag:
+        count_statement = count_statement.join(Link.tags).where(Tag.name == tag)
     
     total = len(session.exec(count_statement).all())
     
