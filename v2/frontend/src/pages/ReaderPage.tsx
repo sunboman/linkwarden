@@ -338,9 +338,14 @@ export function ReaderPage() {
           </button>
 
           <div className="flex-1 min-w-0 text-center">
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 truncate">
+            <a 
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-neutral-500 dark:text-neutral-400 truncate hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
+            >
               {hostname}
-            </p>
+            </a>
           </div>
 
           <button
@@ -479,18 +484,7 @@ export function ReaderPage() {
                    glass-card shadow-lg transition-all duration-300 ease-in-out
                    ${showNavbar ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'}`}
       >
-        <a
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 px-3 py-2 rounded-full
-                     hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
-        >
-          <ExternalLink className="w-4 h-4" />
-          <span className="text-sm font-medium">Open</span>
-        </a>
-        
-        <div className="w-px h-5 bg-neutral-300 dark:bg-neutral-600" />
+
         
         <button
           onClick={() => archiveMutation.mutate()}
