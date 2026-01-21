@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* iOS-style glass effect base */
+@layer base {
+  :root {
+    --glass-blur: 20px;
+    --glass-saturation: 180%;
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply bg-surface-light dark:bg-surface-dark;
+    @apply text-neutral-900 dark:text-neutral-100;
+    @apply antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    /* Safe area insets for iOS */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Smooth scrolling on iOS */
+  html {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  /* Glass card effect - iOS liquid glass style */
+  .glass-card {
+    @apply relative overflow-hidden rounded-2xl;
+    @apply bg-card-light dark:bg-card-dark;
+    @apply border border-white/20 dark:border-white/10;
+    @apply shadow-glass dark:shadow-glass-dark;
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  }
+
+  /* Glass nav bar */
+  .glass-nav {
+    @apply fixed top-0 left-0 right-0 z-50;
+    @apply bg-glass-light dark:bg-glass-dark;
+    @apply border-b border-white/10 dark:border-white/5;
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Floating action button with glass */
+  .glass-fab {
+    @apply fixed bottom-6 right-6 z-40;
+    @apply w-14 h-14 rounded-full;
+    @apply flex items-center justify-center;
+    @apply bg-blue-500 dark:bg-blue-600;
+    @apply text-white shadow-lg;
+    @apply active:scale-95 transition-transform;
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Card hover effect */
+  .link-card {
+    @apply glass-card p-4 transition-all duration-200;
+    @apply hover:scale-[1.02] hover:shadow-lg;
+    @apply active:scale-[0.98];
+  }
+
+  /* Tag pill */
+  .tag-pill {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    @apply bg-neutral-200/60 dark:bg-neutral-700/60;
+    @apply text-neutral-700 dark:text-neutral-300;
+  }
+
+  /* Status indicator */
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .status-pending {
+    @apply bg-amber-400 animate-pulse;
+  }
+
+  .status-archived {
+    @apply bg-green-400;
+  }
+
+  .status-failed {
+    @apply bg-red-400;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

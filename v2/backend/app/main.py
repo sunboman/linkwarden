@@ -2,9 +2,11 @@
 Main FastAPI application.
 """
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .database import create_db_and_tables
 from .routers import auth, links
@@ -39,6 +41,12 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(links.router, prefix="/api/v1")
+
+# Serve static files (screenshots)
+data_dir = Path(__file__).parent.parent.parent / "data"
+screenshots_dir = data_dir / "screenshots"
+screenshots_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/api/v1/files", StaticFiles(directory=str(data_dir)), name="files")
 
 
 @app.get("/")

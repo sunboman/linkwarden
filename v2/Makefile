@@ -1,6 +1,7 @@
 .PHONY: help install dev-install run test lint format clean
 .PHONY: backend-install backend-dev-install backend-run backend-test backend-lint backend-format backend-clean
 .PHONY: worker-install worker-dev-install worker-browsers worker-run worker-test worker-lint worker-format worker-clean
+.PHONY: frontend-install frontend-run frontend-build frontend-lint frontend-clean
 
 # Colors for output
 CYAN := \033[36m
@@ -22,14 +23,15 @@ help:  ## Show this help message
 # General Commands (shortcuts)
 # ============================================================================
 
-install: backend-install worker-install  ## Install all dependencies
+install: backend-install worker-install frontend-install  ## Install all dependencies
 
 dev-install: backend-dev-install worker-dev-install  ## Install all dev dependencies
 
-run:  ## Run backend and worker together
+run:  ## Run backend, worker, and frontend together
 	@trap 'kill 0' EXIT; \
-	(cd backend && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 2>&1 | sed 's/^/\x1b[36m[backend]\x1b[0m /') & \
-	(cd worker && uv run python -m worker.main 2>&1 | sed 's/^/\x1b[33m[worker]\x1b[0m  /') & \
+	(cd backend && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 2>&1 | sed 's/^/\x1b[36m[backend]\x1b[0m  /') & \
+	(cd worker && uv run python -m worker.main 2>&1 | sed 's/^/\x1b[33m[worker]\x1b[0m   /') & \
+	(cd frontend && npm run dev 2>&1 | sed 's/^/\x1b[35m[frontend]\x1b[0m /') & \
 	wait
 
 test: backend-test worker-test  ## Run all tests
@@ -39,6 +41,9 @@ lint: backend-lint worker-lint  ## Run all linters
 format: backend-format worker-format  ## Format all code
 
 clean: backend-clean worker-clean  ## Clean all cache files
+
+migrate:  ## Run database migrations
+	cd backend && uv run python -m app.migrate
 
 # ============================================================================
 # Backend Commands
@@ -55,6 +60,9 @@ backend-run:  ## Run backend development server
 
 backend-test:  ## Run backend tests
 	cd backend && uv run pytest
+
+backend-migrate:  ## Run database migrations
+	cd backend && uv run python -m app.migrate
 
 backend-lint:  ## Run backend linter
 	cd backend && uv run ruff check .
@@ -102,8 +110,20 @@ worker-clean:  ## Clean worker cache files
 	cd worker && rm -rf .venv
 
 # ============================================================================
-# Frontend Commands (To be implemented)
+# Frontend Commands
 # ============================================================================
 
-# frontend-install:  ## Install frontend dependencies
-# 	cd frontend && npm install
+frontend-install:  ## Install frontend dependencies
+	cd frontend && npm install
+
+frontend-run:  ## Run frontend development server
+	cd frontend && npm run dev
+
+frontend-build:  ## Build frontend for production
+	cd frontend && npm run build
+
+frontend-lint:  ## Run frontend linter
+	cd frontend && npm run lint
+
+frontend-clean:  ## Clean frontend build artifacts
+	cd frontend && rm -rf node_modules dist .vite

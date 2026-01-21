@@ -72,7 +72,10 @@ class Archiver:
             # Get favicon
             favicon_url = self._extract_favicon(page)
             
-            # Take screenshot
+            # Get OG/metadata image
+            image_url = self._extract_og_image(page)
+            
+            # Take screenshot (for fallback)
             screenshot_path = self._take_screenshot(page, link_id)
             
             # Close page
@@ -91,6 +94,7 @@ class Archiver:
             return {
                 "title": final_title,
                 "content": readable_content,
+                "image_url": image_url,
                 "screenshot_path": screenshot_path,
                 "favicon_url": favicon_url,
                 "status": "archived",
@@ -119,6 +123,34 @@ class Archiver:
                         return page.url.rstrip("/") + "/" + href.lstrip("/")
         except Exception as e:
             logger.debug(f"Could not extract favicon: {e}")
+        
+        return None
+    
+    def _extract_og_image(self, page) -> Optional[str]:
+        """Extract Open Graph or meta image from page."""
+        try:
+            # Try og:image first
+            og_image = page.locator('meta[property="og:image"]').first
+            if og_image.count() > 0:
+                content = og_image.get_attribute("content")
+                if content:
+                    return content
+            
+            # Try twitter:image
+            twitter_image = page.locator('meta[name="twitter:image"]').first
+            if twitter_image.count() > 0:
+                content = twitter_image.get_attribute("content")
+                if content:
+                    return content
+            
+            # Try generic meta image
+            meta_image = page.locator('meta[name="image"]').first
+            if meta_image.count() > 0:
+                content = meta_image.get_attribute("content")
+                if content:
+                    return content
+        except Exception as e:
+            logger.debug(f"Could not extract OG image: {e}")
         
         return None
     

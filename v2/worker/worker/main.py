@@ -102,6 +102,7 @@ def process_pending_links(archiver: Archiver) -> int:
                 if result.get("status") == "archived":
                     link.title = result.get("title")
                     link.content = result.get("content")
+                    link.image_url = result.get("image_url")
                     link.screenshot_path = result.get("screenshot_path")
                     link.favicon_url = result.get("favicon_url")
                     link.archived_at = result.get("archived_at")

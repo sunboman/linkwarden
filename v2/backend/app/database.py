@@ -4,6 +4,7 @@ Database configuration and connection management.
 from sqlmodel import Session, SQLModel, create_engine
 
 from .settings import settings
+from .migrate import run_migrations
 
 # Create engine with SQLite
 engine = create_engine(
@@ -14,7 +15,10 @@ engine = create_engine(
 
 
 def create_db_and_tables():
-    """Create database tables."""
+    """Create database tables using migrations."""
+    # Run SQL migrations first
+    run_migrations(settings.DATABASE_URL)
+    # Then let SQLModel create any missing tables/columns
     SQLModel.metadata.create_all(engine)
 
 

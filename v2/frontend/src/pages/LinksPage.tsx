@@ -1,0 +1,72 @@
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
+import { LinkCard } from '@/components/LinkCard'
+import { Loader2 } from 'lucide-react'
+
+export function LinksPage() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['links'],
+    queryFn: () => api.getLinks(0, false),
+  })
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-neutral-400" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+        <p className="text-neutral-500 dark:text-neutral-400 mb-4">
+          Failed to load links. Please login first.
+        </p>
+        <LoginPrompt />
+      </div>
+    )
+  }
+
+  if (!data?.links.length) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+        <p className="text-neutral-500 dark:text-neutral-400">
+          No links yet. Tap the + button to add your first link!
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="px-4 py-4">
+      {/* Grid of links - Apple News style */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {data.links.map((link) => (
+          <LinkCard key={link.id} link={link} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Simple login component for demo
+function LoginPrompt() {
+  const handleLogin = async () => {
+    try {
+      await api.login('test', 'password123')
+      window.location.reload()
+    } catch {
+      alert('Login failed. Make sure user exists.')
+    }
+  }
+
+  return (
+    <button
+      onClick={handleLogin}
+      className="px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+    >
+      Login as test user
+    </button>
+  )
+}
