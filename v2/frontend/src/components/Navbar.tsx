@@ -55,12 +55,12 @@ export function Navbar() {
                   }}
                   className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm
                             hover:bg-black/5 dark:hover:bg-white/10 transition-colors
-                            ${isSelected ? 'text-blue-500' : ''}`}
+                            ${isSelected ? 'text-primary' : ''}`}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{option.label}</span>
                   {isSelected && (
-                    <span className="ml-auto text-blue-500">✓</span>
+                    <span className="ml-auto text-primary">✓</span>
                   )}
                 </button>
               )

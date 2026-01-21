@@ -2,18 +2,16 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { 
-  LayoutGrid, 
+  Link2, 
   Archive, 
   Hash, 
   ChevronLeft, 
   ChevronRight,
   LogOut,
-  Moon,
-  Sun,
-  Monitor
+  Plus
 } from 'lucide-react'
 import { api } from '@/lib/api'
-import { useTheme } from '@/hooks/useTheme'
+import { AddLinkModal } from './AddLinkModal'
 
 interface SidebarProps {
   className?: string
@@ -25,12 +23,19 @@ export function Sidebar({ className = '' }: SidebarProps) {
   })
   const navigate = useNavigate()
   const location = useLocation()
-  const { themePreference, setTheme } = useTheme()
 
   const { data: tags = [] } = useQuery({
     queryKey: ['tags'],
     queryFn: api.getTags,
   })
+
+  // Fetch all links count
+  const { data: allLinksData } = useQuery({
+    queryKey: ['links', { limit: 1 }], // Just need the count
+    queryFn: () => api.getLinks(0),
+  })
+
+  const [isAddLinkOpen, setIsAddLinkOpen] = useState(false)
 
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', isCollapsed.toString())
@@ -46,13 +51,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
     navigate(path)
   }
 
-  const toggleTheme = () => {
-    if (themePreference === 'light') setTheme('dark')
-    else if (themePreference === 'dark') setTheme('system')
-    else setTheme('light')
-  }
 
-  const ThemeIcon = themePreference === 'light' ? Sun : themePreference === 'dark' ? Moon : Monitor
 
   return (
     <aside 
@@ -62,8 +61,21 @@ export function Sidebar({ className = '' }: SidebarProps) {
     >
       {/* Header / Logo */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-neutral-200 dark:border-neutral-800">
-        {!isCollapsed && (
-          <span className="font-semibold text-lg truncate">Linkwarden</span>
+        {!isCollapsed ? (
+          <div className="flex items-center gap-2">
+            <img 
+              src="/icon.png" 
+              alt="M" 
+              className="h-8 w-auto object-contain"
+            />
+            <span className="font-semibold text-lg truncate">Michi-reader</span>
+          </div>
+        ) : (
+          <img 
+            src="/icon.png" 
+            alt="M" 
+            className="h-8 w-auto object-contain mx-auto"
+          />
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
@@ -73,15 +85,32 @@ export function Sidebar({ className = '' }: SidebarProps) {
         </button>
       </div>
 
+      {/* Add Link Button (Gmail Compose Style) */}
+      <div className="p-4 pb-2">
+        <button
+          onClick={() => setIsAddLinkOpen(true)}
+          className={`
+            flex items-center gap-3 transition-all duration-200 shadow-lg hover:shadow-xl
+            ${isCollapsed 
+              ? 'w-14 h-14 justify-center rounded-2xl bg-sky-200 text-sky-900 hover:bg-sky-300 dark:bg-sky-300 dark:text-sky-950' 
+              : 'w-fit px-6 py-4 rounded-2xl bg-sky-200 text-sky-900 hover:bg-sky-300 dark:bg-sky-300 dark:text-sky-950'}
+          `}
+        >
+          <Plus className="w-6 h-6" />
+          {!isCollapsed && <span className="font-semibold">Add Link</span>}
+        </button>
+      </div>
+
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
+      <div className="flex-1 overflow-y-auto py-2 px-3 space-y-1">
         {/* Main Links */}
         <NavItem
-          icon={LayoutGrid}
+          icon={Link2}
           label="All Links"
           isActive={isLinksActive}
           isCollapsed={isCollapsed}
           onClick={() => navigateTo('/')}
+          count={allLinksData?.total}
         />
         <NavItem
           icon={Archive}
@@ -94,9 +123,11 @@ export function Sidebar({ className = '' }: SidebarProps) {
         {/* Tags Section */}
         <div className="pt-4 pb-2">
           {!isCollapsed && (
-            <p className="px-3 text-xs font-medium text-neutral-500 uppercase">Tags</p>
+            <div className="flex items-center justify-between px-3 mb-2">
+               <p className="text-xs font-medium text-neutral-500 uppercase">Tags</p>
+            </div>
           )}
-          <div className="mt-2 space-y-1">
+          <div className="space-y-1">
             {tags.map((tag) => (
               <NavItem
                 key={tag.id}
@@ -114,12 +145,6 @@ export function Sidebar({ className = '' }: SidebarProps) {
       {/* Footer Actions */}
       <div className="p-2 border-t border-neutral-200 dark:border-neutral-800 space-y-1">
         <NavItem
-          icon={ThemeIcon}
-          label={`Theme: ${themePreference}`}
-          isCollapsed={isCollapsed}
-          onClick={toggleTheme}
-        />
-        <NavItem
           icon={LogOut}
           label="Logout"
           isCollapsed={isCollapsed}
@@ -130,6 +155,8 @@ export function Sidebar({ className = '' }: SidebarProps) {
           danger
         />
       </div>
+
+      <AddLinkModal isOpen={isAddLinkOpen} onClose={() => setIsAddLinkOpen(false)} />
     </aside>
   )
 }
@@ -141,25 +168,33 @@ interface NavItemProps {
   isCollapsed: boolean
   onClick: () => void
   danger?: boolean
+  className?: string
+  activeClassName?: string
+  count?: number
 }
 
-function NavItem({ icon: Icon, label, isActive, isCollapsed, onClick, danger }: NavItemProps) {
+function NavItem({ icon: Icon, label, isActive, isCollapsed, onClick, danger, className, activeClassName, count }: NavItemProps) {
   return (
     <button
       onClick={onClick}
       title={isCollapsed ? label : undefined}
-      className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200
+      className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 mr-2
                 ${isActive 
-                  ? 'bg-blue-500 text-white shadow-md shadow-blue-500/20' 
-                  : 'hover:bg-neutral-200 dark:hover:bg-neutral-800 text-neutral-600 dark:text-neutral-400'}
+                  ? (activeClassName || 'bg-neutral-200 dark:bg-neutral-800 text-primary font-semibold') 
+                  : (className || 'hover:bg-neutral-100 dark:hover:bg-neutral-800/50 text-neutral-600 dark:text-neutral-400')}
                 ${danger && !isActive ? 'hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10' : ''}
-                ${isCollapsed ? 'justify-center' : ''}
+                ${isCollapsed ? 'justify-center px-0 rounded-xl mx-auto w-10 h-10' : ''}
       `}
     >
-      <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
+      <Icon className={`w-5 h-5 flex-shrink-0`} />
       
       {!isCollapsed && (
-        <span className="truncate text-sm font-medium">{label}</span>
+        <>
+          <span className="truncate text-sm flex-1 text-left">{label}</span>
+          {count !== undefined && (
+            <span className="text-xs font-medium opacity-70">{count}</span>
+          )}
+        </>
       )}
     </button>
   )

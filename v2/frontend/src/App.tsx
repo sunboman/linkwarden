@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { Navbar } from './components/Navbar'
 import { Sidebar } from './components/Sidebar'
+import { TopBar } from './components/TopBar'
 import { LinksPage } from './pages/LinksPage'
 import { ReaderPage } from './pages/ReaderPage'
 import { AddLinkButton } from './components/AddLinkButton'
@@ -26,6 +27,13 @@ function App() {
             <Navbar />
           </div>
         )}
+
+        {/* TopBar: Visible on desktop only (complements Sidebar) */}
+        {!isReaderPage && (
+          <div className="hidden md:block sticky top-0 z-20">
+            <TopBar />
+          </div>
+        )}
         
         <main className={`flex-1 ${isReaderPage ? '' : 'pb-20 md:pb-0'}`}>
           <Routes>
@@ -35,8 +43,12 @@ function App() {
         </main>
       </div>
       
-      {/* FAB: Only show on links page */}
-      {!isReaderPage && <AddLinkButton />}
+      {/* FAB: Only show on links page (not reader, not archive) - AND Mobile Only */}
+      {!isReaderPage && new URLSearchParams(location.search).get('archived') !== 'true' && (
+        <div className="md:hidden">
+            <AddLinkButton />
+        </div>
+      )}
       
       <ReactQueryDevtools initialIsOpen={false} />
     </div>

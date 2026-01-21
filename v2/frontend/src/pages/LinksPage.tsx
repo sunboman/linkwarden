@@ -9,6 +9,7 @@ export function LinksPage() {
   const params = new URLSearchParams(location.search)
   const isArchived = params.get('archived') === 'true'
   const tag = params.get('tag') || undefined
+  const search = params.get('search')?.toLowerCase() || ''
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['links', isArchived, tag],
@@ -40,7 +41,39 @@ export function LinksPage() {
     )
   }
 
+
+
+  const filteredLinks = data?.links.filter(link => {
+    if (!search) return true
+    return (
+      (link.title && link.title.toLowerCase().includes(search)) ||
+      link.url?.toLowerCase().includes(search) ||
+      link.description?.toLowerCase().includes(search)
+    )
+  })
+
+  // Handle various empty states
+  if (!filteredLinks?.length && data?.links.length) {
+     return (
+        <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+            <p className="text-neutral-500 dark:text-neutral-400">
+                No links match your search.
+            </p>
+        </div>
+     )
+  }
+
   if (!data?.links.length) {
+    if (isArchived) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+                <p className="text-neutral-500 dark:text-neutral-400">
+                    No archived links found.
+                </p>
+            </div>
+        )
+    }
+
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center px-4">
         <p className="text-neutral-500 dark:text-neutral-400">
@@ -54,7 +87,7 @@ export function LinksPage() {
     <div className="px-4 py-4">
       {/* Grid of links - Apple News style */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {data.links.map((link) => (
+        {filteredLinks?.map((link) => (
           <LinkCard key={`${link.id}-${link.image_url || ''}-${link.status}`} link={link} />
         ))}
       </div>

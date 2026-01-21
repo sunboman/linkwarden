@@ -8,6 +8,8 @@ export default {
 	theme: {
 		extend: {
 			colors: {
+				primary: 'var(--primary)',
+				'primary-foreground': 'var(--primary-foreground)',
 				// iOS-inspired neutral palette
 				glass: {
 					light: 'rgba(255, 255, 255, 0.72)',

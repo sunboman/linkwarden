@@ -7,7 +7,16 @@
   :root {
     --glass-blur: 20px;
     --glass-saturation: 180%;
+    --primary: #171717;
+    /* Neutral 900 */
+    --primary-foreground: #ffffff;
     color-scheme: light dark;
+  }
+
+  .dark {
+    --primary: #ffffff;
+    /* White */
+    --primary-foreground: #171717;
   }
 
   body {
@@ -30,6 +39,7 @@
 }
 
 @layer components {
+
   /* Glass card effect - iOS liquid glass style */
   .glass-card {
     @apply relative overflow-hidden rounded-2xl;
@@ -55,8 +65,7 @@
     @apply fixed bottom-6 right-6 z-40;
     @apply w-14 h-14 rounded-full;
     @apply flex items-center justify-center;
-    @apply bg-blue-500 dark:bg-blue-600;
-    @apply text-white shadow-lg;
+    @apply bg-primary text-primary-foreground shadow-lg;
     @apply active:scale-95 transition-transform;
     margin-bottom: env(safe-area-inset-bottom);
   }
@@ -94,10 +103,12 @@
 }
 
 @layer utilities {
+
   /* Hide scrollbar but keep functionality */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
