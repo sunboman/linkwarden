@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Type, Minus, Plus, ChevronRight, ChevronLeft, RotateCcw } from 'lucide-react'
+import { Type, Minus, Plus, ChevronRight, ChevronLeft, RotateCcw, Sun, Moon, Monitor } from 'lucide-react'
 
 interface ReaderFormatOptionsProps {
   onSettingsChange: (settings: ReaderSettings) => void
@@ -134,6 +134,51 @@ export function ReaderFormatOptions({ onSettingsChange, currentSettings }: Reade
                         className="p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/10 text-neutral-500"
                     >
                         <Plus className="w-4 h-4" />
+                    </button>
+                 </div>
+              </div>
+
+              </div>
+
+              {/* Theme Row */}
+              <div className="flex items-center justify-between px-3 py-2">
+                 <div className="flex items-center gap-3">
+                    <Sun className="w-4 h-4 text-neutral-500" />
+                    <span className="text-sm font-medium">Theme</span>
+                 </div>
+                 <div className="flex items-center gap-1 bg-neutral-100 dark:bg-neutral-800 rounded-lg p-0.5">
+                    <button 
+                        onClick={() => updateSettings({ theme: 'light' })}
+                        className={`p-1.5 rounded-md transition-colors ${
+                            currentSettings.theme === 'light' 
+                                ? 'bg-white dark:bg-neutral-700 shadow-sm text-amber-500' 
+                                : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
+                        }`}
+                        title="Light"
+                    >
+                        <Sun className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={() => updateSettings({ theme: 'system' })}
+                        className={`p-1.5 rounded-md transition-colors ${
+                            currentSettings.theme === 'system' 
+                                ? 'bg-white dark:bg-neutral-700 shadow-sm text-blue-500' 
+                                : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
+                        }`}
+                        title="System"
+                    >
+                        <Monitor className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={() => updateSettings({ theme: 'dark' })}
+                        className={`p-1.5 rounded-md transition-colors ${
+                            currentSettings.theme === 'dark' 
+                                ? 'bg-white dark:bg-neutral-700 shadow-sm text-indigo-400' 
+                                : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300'
+                        }`}
+                        title="Dark"
+                    >
+                        <Moon className="w-4 h-4" />
                     </button>
                  </div>
               </div>
