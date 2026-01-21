@@ -60,7 +60,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
                  ${isCollapsed ? 'w-16' : 'w-64'} ${className}`}
     >
       {/* Header / Logo */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-neutral-200 dark:border-neutral-800">
+      <div className={`h-16 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 ${isCollapsed ? 'px-2 flex-col justify-center gap-1' : 'px-4'}`}>
         {!isCollapsed ? (
           <div className="flex items-center gap-2">
             <img 
@@ -74,25 +74,25 @@ export function Sidebar({ className = '' }: SidebarProps) {
           <img 
             src="/icon.png" 
             alt="M" 
-            className="h-8 w-auto object-contain mx-auto"
+            className="h-6 w-auto object-contain mx-auto"
           />
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1.5 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors ml-auto"
+          className={`p-1.5 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors ${!isCollapsed ? 'ml-auto' : 'mx-auto w-full flex justify-center'}`}
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
       </div>
 
       {/* Add Link Button (Gmail Compose Style) */}
-      <div className="p-4 pb-2">
+      <div className={`p-4 pb-2 ${isCollapsed ? 'px-2' : ''}`}>
         <button
           onClick={() => setIsAddLinkOpen(true)}
           className={`
             flex items-center gap-3 transition-all duration-200 shadow-lg hover:shadow-xl
             ${isCollapsed 
-              ? 'w-14 h-14 justify-center rounded-2xl bg-sky-200 text-sky-900 hover:bg-sky-300 dark:bg-sky-300 dark:text-sky-950' 
+              ? 'w-10 h-10 justify-center rounded-xl bg-sky-200 text-sky-900 hover:bg-sky-300 dark:bg-sky-300 dark:text-sky-950 mx-auto' 
               : 'w-fit px-6 py-4 rounded-2xl bg-sky-200 text-sky-900 hover:bg-sky-300 dark:bg-sky-300 dark:text-sky-950'}
           `}
         >
