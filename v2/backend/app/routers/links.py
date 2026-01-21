@@ -7,7 +7,7 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, and_, or_, select
 
-from ..database import get_session
+from ..database import get_session, commit_and_refresh
 from ..dependencies import get_current_user
 from ..models import Link, LinkTagLink, Tag, User
 from ..schemas import LinkCreate, LinkListResponse, LinkResponse, LinkUpdate
@@ -42,9 +42,7 @@ async def create_link(
             
             link.tags.append(tag)
     
-    session.add(link)
-    session.commit()
-    session.refresh(link)
+    commit_and_refresh(session, link)
     
     return link
 
@@ -159,9 +157,7 @@ async def update_link(
     
     link.updated_at = datetime.utcnow()
     
-    session.add(link)
-    session.commit()
-    session.refresh(link)
+    commit_and_refresh(session, link)
     
     return link
 
@@ -266,8 +262,6 @@ async def refresh_link(
     link.status = "pending"
     link.updated_at = datetime.utcnow()
     
-    session.add(link)
-    session.commit()
-    session.refresh(link)
+    commit_and_refresh(session, link)
     
     return link

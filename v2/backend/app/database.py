@@ -26,3 +26,11 @@ def get_session():
     """Dependency for getting database sessions."""
     with Session(engine) as session:
         yield session
+
+
+def commit_and_refresh(session: Session, obj: SQLModel):
+    """Helper to add, commit, and refresh an object."""
+    session.add(obj)
+    session.commit()
+    session.refresh(obj)
+    return obj
