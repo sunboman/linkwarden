@@ -97,4 +97,13 @@ export const api = {
 		})
 		if (!res.ok) throw new Error('Failed to delete link')
 	},
+
+	async refreshLink(id: number): Promise<Link> {
+		const res = await fetch(`${API_BASE}/links/${id}/refresh`, {
+			method: 'POST',
+			headers: getAuthHeader(),
+		})
+		if (!res.ok) throw new Error('Failed to refresh link')
+		return res.json()
+	},
 }

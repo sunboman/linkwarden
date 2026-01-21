@@ -182,3 +182,36 @@ async def delete_link(
     session.commit()
     
     return None
+
+
+@router.post("/{link_id}/refresh", response_model=LinkResponse)
+async def refresh_link(
+    link_id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[Session, Depends(get_session)],
+):
+    """Re-queue a link for archiving (clears existing archive data)."""
+    statement = select(Link).where(
+        and_(Link.id == link_id, Link.user_id == current_user.id)
+    )
+    link = session.exec(statement).first()
+    
+    if not link:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Link not found",
+        )
+    
+    # Reset archive data
+    link.content = None
+    link.screenshot_path = None
+    link.image_url = None
+    link.archived_at = None
+    link.status = "pending"
+    link.updated_at = datetime.utcnow()
+    
+    session.add(link)
+    session.commit()
+    session.refresh(link)
+    
+    return link

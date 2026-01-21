@@ -1,18 +1,20 @@
 import { Link } from 'react-router-dom'
 import type { Link as LinkType } from '@/types'
 import { ExternalLink, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import { LinkCardMenu } from './LinkCardMenu'
 
 interface LinkCardProps {
   link: LinkType
+  onEdit?: () => void
 }
 
-export function LinkCard({ link }: LinkCardProps) {
+export function LinkCard({ link, onEdit }: LinkCardProps) {
   const hostname = new URL(link.url).hostname.replace('www.', '')
 
   return (
-    <Link to={`/read/${link.id}`} className="link-card block">
+    <Link to={`/read/${link.id}`} className="link-card block relative group">
       {/* Cover image - OG image with screenshot fallback */}
-      <div className="aspect-[16/10] bg-neutral-200 dark:bg-neutral-700 rounded-xl mb-3 overflow-hidden">
+      <div className="aspect-[16/10] bg-neutral-200 dark:bg-neutral-700 rounded-xl mb-3 overflow-hidden relative">
         {(link.image_url || link.screenshot_path) ? (
           <img
             src={link.image_url || `/api/v1/files/${link.screenshot_path}`}
@@ -25,6 +27,11 @@ export function LinkCard({ link }: LinkCardProps) {
             <ExternalLink className="w-8 h-8" />
           </div>
         )}
+        
+        {/* Menu button - top right corner */}
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <LinkCardMenu link={link} onEdit={onEdit} />
+        </div>
       </div>
 
       {/* Content */}
