@@ -60,7 +60,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
                  ${isCollapsed ? 'w-16' : 'w-64'} ${className}`}
     >
       {/* Header / Logo */}
-      <div className={`h-16 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 ${isCollapsed ? 'px-2 flex-col justify-center gap-1' : 'px-4'}`}>
+      <div className={`flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 ${isCollapsed ? 'py-4 px-2 flex-col justify-center gap-3' : 'h-16 px-4'}`}>
         {!isCollapsed ? (
           <div className="flex items-center gap-2">
             <img 
