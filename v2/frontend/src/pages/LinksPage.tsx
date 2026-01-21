@@ -48,7 +48,8 @@ export function LinksPage() {
     return (
       (link.title && link.title.toLowerCase().includes(search)) ||
       link.url?.toLowerCase().includes(search) ||
-      link.description?.toLowerCase().includes(search)
+      link.description?.toLowerCase().includes(search) ||
+      link.tags?.some(tag => tag.name.toLowerCase().includes(search))
     )
   })
 
