@@ -178,6 +178,37 @@ async def delete_link(
             detail="Link not found",
         )
     
+    # Delete associated files
+    from pathlib import Path
+    
+    # Resolve data directory (same as in main.py)
+    # v2/backend/app/routers/links.py -> v2/data
+    data_dir = Path(__file__).parent.parent.parent.parent / "data"
+    
+    files_to_delete = []
+    
+    # Add screenshot
+    if link.screenshot_path:
+        files_to_delete.append(data_dir / link.screenshot_path)
+    
+    # Add preview image if it's a local file
+    if link.image_url and not link.image_url.startswith("http"):
+        files_to_delete.append(data_dir / link.image_url)
+    
+    # Add readable content file if it's stored as a file path (for v1 compatibility)
+    # Although v2 stores it in DB, let's be safe if it points to a file
+    if link.content and link.content.startswith("archives/"):
+        files_to_delete.append(data_dir / link.content)
+
+    for file_path in files_to_delete:
+        try:
+            if file_path.exists() and file_path.is_file():
+                file_path.unlink()
+        except Exception as e:
+            # Log error but don't fail deletion
+            print(f"Failed to delete file {file_path}: {e}")
+            pass
+    
     session.delete(link)
     session.commit()
     
@@ -202,6 +233,25 @@ async def refresh_link(
             detail="Link not found",
         )
     
+    # Delete associated files (prevent orphans)
+    from pathlib import Path
+    data_dir = Path(__file__).parent.parent.parent.parent / "data"
+    
+    files_to_delete = []
+    if link.screenshot_path:
+        files_to_delete.append(data_dir / link.screenshot_path)
+    if link.image_url and not link.image_url.startswith("http"):
+        files_to_delete.append(data_dir / link.image_url)
+    if link.content and link.content.startswith("archives/"):
+        files_to_delete.append(data_dir / link.content)
+
+    for file_path in files_to_delete:
+        try:
+            if file_path.exists() and file_path.is_file():
+                file_path.unlink()
+        except Exception:
+            pass
+
     # Reset archive data
     link.content = None
     link.screenshot_path = None
