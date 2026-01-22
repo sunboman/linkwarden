@@ -51,10 +51,11 @@ export const api = {
 	},
 
 	// Links
-	async getLinks(cursor = 0, archived?: boolean, tag?: string): Promise<LinkListResponse> {
+	async getLinks(cursor = 0, archived?: boolean, tag?: string, sort?: number): Promise<LinkListResponse> {
 		const params = new URLSearchParams({ cursor: cursor.toString() })
 		if (archived !== undefined) params.set('archived', archived.toString())
 		if (tag) params.set('tag', tag)
+		if (sort !== undefined) params.set('sort', sort.toString())
 
 		const res = await fetch(`${API_BASE}/links?${params}`, {
 			headers: getAuthHeader(),

@@ -2,7 +2,29 @@ import { useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { LinkCard } from '@/components/LinkCard'
+import { Sort } from '@/types'
 import { Loader2 } from 'lucide-react'
+
+const SORT_STORAGE_KEY = 'linkwarden-sort'
+
+function getSortFromParams(params: URLSearchParams): Sort {
+  const urlSort = params.get('sort')
+  if (urlSort !== null) {
+    const parsed = Number(urlSort)
+    if (Object.values(Sort).includes(parsed)) {
+      return parsed as Sort
+    }
+  }
+  // Fall back to localStorage
+  const saved = localStorage.getItem(SORT_STORAGE_KEY)
+  if (saved !== null) {
+    const parsed = Number(saved)
+    if (Object.values(Sort).includes(parsed)) {
+      return parsed as Sort
+    }
+  }
+  return Sort.LastReadNewestFirst
+}
 
 export function LinksPage() {
   const location = useLocation()
@@ -10,10 +32,11 @@ export function LinksPage() {
   const isArchived = params.get('archived') === 'true'
   const tag = params.get('tag') || undefined
   const search = params.get('search')?.toLowerCase() || ''
+  const sort = getSortFromParams(params)
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['links', isArchived, tag],
-    queryFn: () => api.getLinks(0, isArchived, tag),
+    queryKey: ['links', isArchived, tag, sort],
+    queryFn: () => api.getLinks(0, isArchived, tag, sort),
     // Auto-refetch every 2 seconds if there are pending links
     refetchInterval: (query) => {
       const links = query.state.data?.links || []
@@ -40,8 +63,6 @@ export function LinksPage() {
       </div>
     )
   }
-
-
 
   const filteredLinks = data?.links.filter(link => {
     if (!search) return true

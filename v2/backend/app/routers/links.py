@@ -2,6 +2,7 @@
 Link routes for CRUD operations.
 """
 from datetime import datetime
+from enum import IntEnum
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -12,6 +13,15 @@ from ..database import get_session, commit_and_refresh
 from ..dependencies import get_current_user
 from ..models import Link, LinkTagLink, Tag, User, ReadingProgress
 from ..schemas import LinkCreate, LinkListResponse, LinkResponse, LinkUpdate, TagResponse
+
+
+class Sort(IntEnum):
+    """Sort options matching v1 behavior."""
+    DateNewestFirst = 0
+    DateOldestFirst = 1
+    LastReadNewestFirst = 2
+    LastReadOldestFirst = 3
+
 
 router = APIRouter(prefix="/links", tags=["links"])
 
@@ -78,6 +88,7 @@ async def list_links(
     archived: Optional[bool] = Query(None, description="Filter by archived status"),
     status_filter: Optional[str] = Query(None, description="Filter by status"),
     tag: Optional[str] = Query(None, description="Filter by tag name"),
+    sort: int = Query(Sort.DateNewestFirst.value, description="Sort order: 0=Date Newest, 1=Date Oldest, 2=Last Read Newest, 3=Last Read Oldest"),
 ):
     """List links with pagination."""
     # Build query
@@ -92,7 +103,15 @@ async def list_links(
     if tag:
         statement = statement.join(Link.tags).where(Tag.name == tag)
     
-    statement = statement.order_by(Link.created_at.desc())
+    # Apply DB-level sorting for date-based sorts
+    # Last Read sorting is done in application layer (matching v1 behavior)
+    if sort == Sort.DateNewestFirst:
+        statement = statement.order_by(Link.created_at.desc())
+    elif sort == Sort.DateOldestFirst:
+        statement = statement.order_by(Link.created_at.asc())
+    else:
+        # Default order for Last Read sorting (will be re-sorted in app layer)
+        statement = statement.order_by(Link.created_at.desc())
     
     # Get total count
     count_statement = select(Link).where(Link.user_id == current_user.id)
@@ -105,11 +124,32 @@ async def list_links(
     
     total = len(session.exec(count_statement).all())
     
-    # Apply pagination
-    statement = statement.offset(cursor).limit(limit)
-    # Eager load reading progress
-    statement = statement.options(selectinload(Link.reading_progress_records))
-    links = session.exec(statement).all()
+    # For Last Read sorting, we need to fetch all links and sort in app layer
+    # (matching v1 behavior - Prisma doesn't support ORDER BY on related aggregates)
+    if sort in (Sort.LastReadNewestFirst, Sort.LastReadOldestFirst):
+        # Fetch all links (no pagination yet)
+        statement_all = statement.options(selectinload(Link.reading_progress_records))
+        all_links = list(session.exec(statement_all).all())
+        
+        # Sort by last read time (or created_at if not read)
+        def get_sort_time(link: Link) -> datetime:
+            """Get sorting timestamp: reading progress updated_at if exists, else created_at."""
+            for p in link.reading_progress_records:
+                if p.user_id == current_user.id:
+                    return p.updated_at
+            return link.created_at
+        
+        reverse = sort == Sort.LastReadNewestFirst
+        all_links.sort(key=get_sort_time, reverse=reverse)
+        
+        # Apply pagination
+        links = all_links[cursor:cursor + limit]
+    else:
+        # Apply pagination at DB level
+        statement = statement.offset(cursor).limit(limit)
+        # Eager load reading progress
+        statement = statement.options(selectinload(Link.reading_progress_records))
+        links = session.exec(statement).all()
     
     # Enrich links
     links = [enrich_link(link, current_user.id) for link in links]

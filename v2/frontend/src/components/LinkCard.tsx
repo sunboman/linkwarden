@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { Link as LinkType } from '@/types'
-import { ExternalLink, Clock, CheckCircle, AlertCircle } from 'lucide-react'
+import { ExternalLink, Clock, AlertCircle } from 'lucide-react'
 import { LinkCardMenu } from './LinkCardMenu'
 import { EditLinkModal } from './EditLinkModal'
 
@@ -13,8 +13,25 @@ export function LinkCard({ link }: LinkCardProps) {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [primaryFailed, setPrimaryFailed] = useState(false)
   const [showAllTags, setShowAllTags] = useState(false)
+  const tagsRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const hostname = new URL(link.url).hostname.replace('www.', '')
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (tagsRef.current && !tagsRef.current.contains(event.target as Node)) {
+        setShowAllTags(false)
+      }
+    }
+
+    if (showAllTags) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showAllTags])
 
   // Helper to resolve image URL
   const getImageUrl = (path: string | null) => {
@@ -75,8 +92,15 @@ export function LinkCard({ link }: LinkCardProps) {
             </div>
           )}
           
-          {/* Menu button - top right corner */}
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          {/* Failed indicator - top right corner */}
+          {link.status === 'failed' && (
+            <div className="absolute top-2 right-2 bg-red-500/90 rounded-full p-1 shadow-sm backdrop-blur-sm z-10" title="Archiving failed">
+              <AlertCircle className="w-4 h-4 text-white" />
+            </div>
+          )}
+          
+          {/* Menu button - top right corner (offset if failed) */}
+          <div className={`absolute top-2 ${link.status === 'failed' ? 'right-9' : 'right-2'} opacity-0 group-hover:opacity-100 transition-opacity`}>
             <LinkCardMenu link={link} onEdit={() => setEditModalOpen(true)} />
           </div>
         </div>
@@ -101,20 +125,17 @@ export function LinkCard({ link }: LinkCardProps) {
             )}
             <span className="truncate">{hostname}</span>
 
-            {/* Status indicator */}
-            <span className="ml-auto flex items-center gap-1">
-              {link.status === 'completed' && (
-                <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-              )}
-              {link.status === 'failed' && (
-                <AlertCircle className="w-3.5 h-3.5 text-red-500" />
-              )}
+            {/* Status indicator & Date */}
+            <span className="ml-auto flex items-center gap-2">
+              <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                {new Date(link.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+              </span>
             </span>
           </div>
 
           {/* Tags */}
           {link.tags.length > 0 && (
-            <div className="relative mt-2 pr-16 overflow-visible">
+            <div ref={tagsRef} className="relative mt-2 pr-2 overflow-visible">
               <div className="flex flex-wrap gap-1">
                 {link.tags.slice(0, 3).map((tag) => (
                   <button
@@ -158,14 +179,9 @@ export function LinkCard({ link }: LinkCardProps) {
           )}
         </div>
 
-        {/* Added date - positioned absolutely at bottom right */}
-        <span className="absolute bottom-4 right-4 text-xs text-neutral-400 dark:text-neutral-500">
-          {new Date(link.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-        </span>
-
-        {/* Reading progress - positioned as bottom border */}
+        {/* Reading progress */}
         {(link.reading_progress || 0) > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-neutral-200 dark:bg-neutral-700 rounded-b-2xl overflow-hidden">
+          <div className="mt-3 w-full h-1 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden shrink-0">
             <div
               className="h-full bg-blue-500 transition-all"
               style={{ width: `${Math.min(link.reading_progress || 0, 100)}%` }}

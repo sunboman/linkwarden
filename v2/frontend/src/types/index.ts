@@ -16,6 +16,13 @@ export interface Link {
 	tags: Tag[]
 }
 
+export enum Sort {
+	DateNewestFirst = 0,
+	DateOldestFirst = 1,
+	LastReadNewestFirst = 2,
+	LastReadOldestFirst = 3,
+}
+
 export interface ReadingProgress {
 	percent: number
 	text_quote: string | null
