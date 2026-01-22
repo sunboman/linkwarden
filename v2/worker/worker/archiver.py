@@ -128,7 +128,7 @@ class Archiver:
                     "image_url": image_url,
                     "screenshot_path": screenshot_path,
                     "favicon_url": favicon_url,
-                    "status": "archived",
+                    "status": "completed",
                     "archived_at": datetime.utcnow(),
                 }
             
@@ -141,7 +141,7 @@ class Archiver:
                 "image_url": image_url,
                 "screenshot_path": screenshot_path,
                 "favicon_url": favicon_url,
-                "status": "archived",
+                "status": "completed",
                 "archived_at": datetime.utcnow(),
             }
             

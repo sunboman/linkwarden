@@ -29,8 +29,7 @@ CREATE TABLE IF NOT EXISTS links (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     archived_at TIMESTAMP,
     user_id INTEGER NOT NULL REFERENCES users(id),
-    is_archived BOOLEAN DEFAULT FALSE,
-    reading_progress REAL DEFAULT 0.0
+    is_archived BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE IF NOT EXISTS link_tags (

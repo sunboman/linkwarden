@@ -7,7 +7,7 @@ export interface Link {
 	image_url: string | null
 	screenshot_path: string | null
 	favicon_url: string | null
-	status: 'pending' | 'archived' | 'failed'
+	status: 'pending' | 'completed' | 'failed'
 	created_at: string
 	updated_at: string
 	archived_at: string | null

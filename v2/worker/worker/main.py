@@ -99,7 +99,7 @@ def process_pending_links(archiver: Archiver) -> int:
                 link.status = result.get("status", "failed")
                 link.updated_at = datetime.utcnow()
                 
-                if result.get("status") == "archived":
+                if result.get("status") == "completed":
                     link.title = result.get("title") or link.title
                     link.description = result.get("description")
                     link.content = result.get("content")

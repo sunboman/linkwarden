@@ -89,7 +89,7 @@ export function LinkCard({ link }: LinkCardProps) {
 
             {/* Status indicator */}
             <span className="ml-auto flex items-center gap-1">
-              {link.status === 'archived' && (
+              {link.status === 'completed' && (
                 <CheckCircle className="w-3.5 h-3.5 text-green-500" />
               )}
               {link.status === 'failed' && (

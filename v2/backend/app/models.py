@@ -60,7 +60,7 @@ class Link(SQLModel, table=True):
     screenshot_path: Optional[str] = None
     favicon_url: Optional[str] = None
     
-    # Status: pending, archived, failed
+    # Status: pending, completed, failed
     status: str = Field(default="pending", index=True)
     
     # Timestamps
