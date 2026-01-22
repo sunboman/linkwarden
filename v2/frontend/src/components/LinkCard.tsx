@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import type { Link as LinkType } from '@/types'
 import { ExternalLink, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { LinkCardMenu } from './LinkCardMenu'
@@ -12,6 +12,8 @@ interface LinkCardProps {
 export function LinkCard({ link }: LinkCardProps) {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [primaryFailed, setPrimaryFailed] = useState(false)
+  const [showAllTags, setShowAllTags] = useState(false)
+  const navigate = useNavigate()
   const hostname = new URL(link.url).hostname.replace('www.', '')
 
   // Helper to resolve image URL
@@ -28,9 +30,21 @@ export function LinkCard({ link }: LinkCardProps) {
   // Use primary unless it failed, then use fallback
   const currentSrc = (primaryImage && !primaryFailed) ? primaryImage : fallbackImage
 
+  const handleTagClick = (e: React.MouseEvent, tagName: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    navigate(`?tag=${encodeURIComponent(tagName)}`)
+  }
+
+  const handleExpandTags = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setShowAllTags(!showAllTags)
+  }
+
   return (
     <>
-      <Link to={`/read/${link.id}`} className="link-card block relative group flex flex-col">
+      <Link to={`/read/${link.id}`} className="link-card block relative group flex flex-col overflow-visible">
         {/* Cover image - OG image with screenshot fallback */}
         <div className="aspect-[16/10] bg-neutral-200 dark:bg-neutral-700 rounded-xl mb-3 overflow-hidden relative">
           {currentSrc ? (
@@ -100,14 +114,45 @@ export function LinkCard({ link }: LinkCardProps) {
 
           {/* Tags */}
           {link.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2 pr-16">
-              {link.tags.slice(0, 3).map((tag) => (
-                <span key={tag.id} className="tag-pill">
-                  {tag.name}
-                </span>
-              ))}
-              {link.tags.length > 3 && (
-                <span className="tag-pill">+{link.tags.length - 3}</span>
+            <div className="relative mt-2 pr-16 overflow-visible">
+              <div className="flex flex-wrap gap-1">
+                {link.tags.slice(0, 3).map((tag) => (
+                  <button
+                    key={tag.id}
+                    onClick={(e) => handleTagClick(e, tag.name)}
+                    className="tag-pill hover:bg-neutral-300/60 dark:hover:bg-neutral-600/60 transition-colors cursor-pointer"
+                  >
+                    {tag.name}
+                  </button>
+                ))}
+                {link.tags.length > 3 && (
+                  <button
+                    onClick={handleExpandTags}
+                    className="tag-pill hover:bg-neutral-300/60 dark:hover:bg-neutral-600/60 transition-colors cursor-pointer"
+                  >
+                    +{link.tags.length - 3}
+                  </button>
+                )}
+              </div>
+
+              {/* Expanded tags dropdown */}
+              {showAllTags && link.tags.length > 3 && (
+                <div 
+                  className="absolute left-0 top-full mt-1 z-20 bg-white dark:bg-neutral-800 rounded-xl shadow-lg border border-neutral-200 dark:border-neutral-700 p-2 min-w-[150px]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex flex-wrap gap-1">
+                    {link.tags.slice(3).map((tag) => (
+                      <button
+                        key={tag.id}
+                        onClick={(e) => handleTagClick(e, tag.name)}
+                        className="tag-pill hover:bg-neutral-300/60 dark:hover:bg-neutral-600/60 transition-colors cursor-pointer"
+                      >
+                        {tag.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           )}

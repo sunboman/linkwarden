@@ -75,6 +75,7 @@
     @apply glass-card p-4 transition-all duration-200;
     @apply hover:scale-[1.02] hover:shadow-lg;
     @apply active:scale-[0.98];
+    overflow: visible;
   }
 
   /* Tag pill */
