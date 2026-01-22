@@ -22,11 +22,11 @@ export const api = {
 		return data
 	},
 
-	async register(username: string, email: string, password: string) {
+	async register(username: string, password: string) {
 		const res = await fetch(`${API_BASE}/auth/register`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ username, email, password }),
+			body: JSON.stringify({ username, password }),
 		})
 		if (!res.ok) throw new Error('Registration failed')
 		return res.json()

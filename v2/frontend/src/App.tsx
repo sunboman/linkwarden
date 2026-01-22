@@ -1,14 +1,57 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { Navbar } from './components/Navbar'
 import { Sidebar } from './components/Sidebar'
 import { TopBar } from './components/TopBar'
 import { LinksPage } from './pages/LinksPage'
 import { ReaderPage } from './pages/ReaderPage'
+import { LoginPage } from './pages/LoginPage'
+import { SignUpPage } from './pages/SignUpPage'
 import { AddLinkButton } from './components/AddLinkButton'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { BottomBar } from './components/BottomBar'
+import { useAuth } from './hooks/useAuth'
+import { Loader2 } from 'lucide-react'
 
-function App() {
+// Protected route wrapper
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth()
+  const location = useLocation()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50 dark:bg-neutral-900">
+        <Loader2 className="w-8 h-8 animate-spin text-neutral-400" />
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  return <>{children}</>
+}
+
+// Auth route wrapper (redirect to home if already logged in)
+function AuthRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-900">
+        <Loader2 className="w-8 h-8 animate-spin text-neutral-400" />
+      </div>
+    )
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />
+  }
+
+  return <>{children}</>
+}
+
+function AppContent() {
   const location = useLocation()
   const isReaderPage = location.pathname.startsWith('/read/')
 
@@ -61,4 +104,30 @@ function App() {
   )
 }
 
+function App() {
+  return (
+    <Routes>
+      {/* Auth routes */}
+      <Route path="/login" element={
+        <AuthRoute>
+          <LoginPage />
+        </AuthRoute>
+      } />
+      <Route path="/signup" element={
+        <AuthRoute>
+          <SignUpPage />
+        </AuthRoute>
+      } />
+      
+      {/* Protected routes */}
+      <Route path="/*" element={
+        <ProtectedRoute>
+          <AppContent />
+        </ProtectedRoute>
+      } />
+    </Routes>
+  )
+}
+
 export default App
+

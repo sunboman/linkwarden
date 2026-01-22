@@ -11,8 +11,8 @@ from pydantic import BaseModel
 class UserCreate(BaseModel):
     """Schema for user registration."""
     username: str
-    email: str
     password: str
+    email: Optional[str] = None
 
 
 class UserLogin(BaseModel):
@@ -31,7 +31,7 @@ class UserResponse(BaseModel):
     """Schema for user response."""
     id: int
     username: str
-    email: str
+    email: Optional[str] = None
     created_at: datetime
 
 
