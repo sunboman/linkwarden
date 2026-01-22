@@ -16,7 +16,10 @@ export const api = {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ username, password }),
 		})
-		if (!res.ok) throw new Error('Login failed')
+		if (!res.ok) {
+			const error = await res.json().catch(() => ({}))
+			throw new Error(error.detail || 'Login failed')
+		}
 		const data = await res.json()
 		localStorage.setItem('token', data.access_token)
 		return data
@@ -28,7 +31,10 @@ export const api = {
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ username, password }),
 		})
-		if (!res.ok) throw new Error('Registration failed')
+		if (!res.ok) {
+			const error = await res.json().catch(() => ({}))
+			throw new Error(error.detail || 'Registration failed')
+		}
 		return res.json()
 	},
 

@@ -24,9 +24,12 @@ help:  ## Show this help message
 # General Commands (shortcuts)
 # ============================================================================
 
-install: backend-install worker-install frontend-install  ## Install all dependencies
+setup-env:  ## Generate service environment files from root .env
+	@./scripts/generate_env.sh
 
-dev-install: backend-dev-install worker-dev-install  ## Install all dev dependencies
+install: setup-env backend-install worker-install frontend-install  ## Install all dependencies
+
+dev-install: setup-env backend-dev-install worker-dev-install  ## Install all dev dependencies
 
 run:  ## Run backend, worker, and frontend together
 	@trap 'kill 0' EXIT; \

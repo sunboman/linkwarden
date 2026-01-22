@@ -7,7 +7,7 @@ set -e
 # Defaults
 BUILD=false
 PORT=${PORT:-3000}
-DATA_DIR="${DATA_DIR:-$HOME/.linkwarden-v2}"
+DATA_DIR="${DATA_DIR:-$HOME/.michi_reader}"
 
 # Parse arguments
 while [[ "$#" -gt 0 ]]; do
@@ -22,7 +22,7 @@ done
 
 # Export for docker-compose
 export PORT=$PORT
-export HOST=${HOST:-$(hostname)}
+export HOST=${HOST:-$(hostname | awk '{print $1}')}
 export DATA_DIR=$DATA_DIR
 
 echo "=== Linkwarden v2 Deployment ==="
@@ -36,32 +36,23 @@ mkdir -p "$DATA_DIR/screenshots"
 
 # Generate .env if missing
 if [ ! -f "$DATA_DIR/.env" ]; then
-    echo "Generating .env file in $DATA_DIR..."
-    SECRET_KEY=$(openssl rand -base64 32)
+    GENERATOR_SCRIPT="./scripts/generate_env.sh"
     
-    cat <<EOF > "$DATA_DIR/.env"
-# Linkwarden v2 Production Configuration
-# Generated on $(date)
-
-# Security - DO NOT SHARE!
-SECRET_KEY=$SECRET_KEY
-
-# Server
-PORT=$PORT
-HOST=$HOST
-
-# Data (host path for volume mount)
-DATA_DIR=$DATA_DIR
-
-# CORS (comma-separated origins)
-CORS_ORIGINS=http://localhost:$PORT,http://$HOST:$PORT
-
-# Worker settings
-POLL_INTERVAL=5
-MAX_RETRIES=3
-TIMEOUT=30000
-EOF
-    echo ".env file generated."
+    if [ -f "$GENERATOR_SCRIPT" ]; then
+        echo "Generating .env file in $DATA_DIR..."
+        
+        # Export variables for the generator script
+        export DATA_DIR
+        export PORT
+        export HOST
+        
+        # Run generator
+        bash "$GENERATOR_SCRIPT" --prod "$DATA_DIR"
+    else
+        echo "Error: Generator script not found at $GENERATOR_SCRIPT"
+        echo "Please verify the repository structure."
+        exit 1
+    fi
 else
     echo ".env file exists at $DATA_DIR/.env"
 fi

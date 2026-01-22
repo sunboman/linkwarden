@@ -2,6 +2,7 @@
 Main FastAPI application.
 """
 from contextlib import asynccontextmanager
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -45,7 +46,14 @@ app.include_router(tags.router, prefix="/api/v1")
 app.include_router(reading_progress.router, prefix="/api/v1")
 
 # Serve static files (screenshots)
-data_dir = Path(__file__).parent.parent.parent / "data"
+# Serve static files (screenshots)
+data_dir_str = os.getenv("DATA_DIR")
+if data_dir_str:
+    data_dir = Path(data_dir_str)
+else:
+    # Fallback for local development (relative to backend/app/main.py -> backend/ -> root/ -> data)
+    data_dir = Path(__file__).parent.parent.parent / "data"
+
 screenshots_dir = data_dir / "screenshots"
 screenshots_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/api/v1/files", StaticFiles(directory=str(data_dir)), name="files")
