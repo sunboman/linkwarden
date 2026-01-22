@@ -30,7 +30,7 @@ export function LinkCard({ link }: LinkCardProps) {
 
   return (
     <>
-      <Link to={`/read/${link.id}`} className="link-card block relative group">
+      <Link to={`/read/${link.id}`} className="link-card block relative group flex flex-col">
         {/* Cover image - OG image with screenshot fallback */}
         <div className="aspect-[16/10] bg-neutral-200 dark:bg-neutral-700 rounded-xl mb-3 overflow-hidden relative">
           {currentSrc ? (
@@ -68,14 +68,14 @@ export function LinkCard({ link }: LinkCardProps) {
         </div>
 
         {/* Content */}
-        <div className="space-y-2">
+        <div className="flex-1">
           {/* Title */}
           <h3 className="font-medium text-base leading-tight line-clamp-2">
             {link.title || hostname}
           </h3>
 
           {/* Meta row */}
-          <div className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400">
+          <div className="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 mt-2">
             {/* Favicon */}
             {link.favicon_url && (
               <img
@@ -100,7 +100,7 @@ export function LinkCard({ link }: LinkCardProps) {
 
           {/* Tags */}
           {link.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1 mt-2 pr-16">
               {link.tags.slice(0, 3).map((tag) => (
                 <span key={tag.id} className="tag-pill">
                   {tag.name}
@@ -111,17 +111,22 @@ export function LinkCard({ link }: LinkCardProps) {
               )}
             </div>
           )}
-
-          {/* Reading progress */}
-          {(link.reading_progress || 0) > 0 && (
-            <div className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden mt-2">
-              <div
-                className="h-full bg-blue-500 rounded-full transition-all"
-                style={{ width: `${Math.min(link.reading_progress || 0, 100)}%` }}
-              />
-            </div>
-          )}
         </div>
+
+        {/* Added date - positioned absolutely at bottom right */}
+        <span className="absolute bottom-4 right-4 text-xs text-neutral-400 dark:text-neutral-500">
+          {new Date(link.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+        </span>
+
+        {/* Reading progress - positioned as bottom border */}
+        {(link.reading_progress || 0) > 0 && (
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-neutral-200 dark:bg-neutral-700 rounded-b-2xl overflow-hidden">
+            <div
+              className="h-full bg-blue-500 transition-all"
+              style={{ width: `${Math.min(link.reading_progress || 0, 100)}%` }}
+            />
+          </div>
+        )}
       </Link>
 
       {/* Edit Modal */}
