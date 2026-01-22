@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .database import create_db_and_tables
-from .routers import auth, links, tags
+from .routers import auth, links, tags, reading_progress
 from .settings import settings
 
 
@@ -42,6 +42,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(links.router, prefix="/api/v1")
 app.include_router(tags.router, prefix="/api/v1")
+app.include_router(reading_progress.router, prefix="/api/v1")
 
 # Serve static files (screenshots)
 data_dir = Path(__file__).parent.parent.parent / "data"

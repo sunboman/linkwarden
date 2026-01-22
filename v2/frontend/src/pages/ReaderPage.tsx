@@ -9,6 +9,38 @@ import {  ReaderSelectionMenu } from '@/components/ReaderSelectionMenu'
 import { ReaderHighlightsList } from '@/components/ReaderHighlightsList'
 import { HighlightPopover } from '@/components/HighlightPopover'
 import { useTheme } from '@/hooks/useTheme'
+import { ReadingProgressResponse, ReadingProgressUpdate } from '@/types'
+import StickyReadingProgress from '@/components/StickyReadingProgress'
+
+// Helper to generate a text anchor
+const getTextAnchor = (root: HTMLElement, el: Element) => {
+    const text = el.textContent?.trim().slice(0, 100); // First 100 chars
+    if (!text) return null;
+
+    const allWithText = Array.from(
+      root.querySelectorAll("*")
+    ).filter((e) => e.textContent?.trim().startsWith(text));
+    const instance = allWithText.indexOf(el);
+
+    return { text, instance: instance === -1 ? 0 : instance };
+};
+
+const getFirstVisibleElement = (container: HTMLElement) => {
+    const containerRect = container.getBoundingClientRect();
+    const x = containerRect.left + containerRect.width / 2;
+    const y = containerRect.top + 100;
+
+    let el = document.elementFromPoint(x, y);
+    
+    while (el && container.contains(el) && el !== container) {
+      const tag = el.tagName.toLowerCase();
+      if (["p", "h1", "h2", "h3", "h4", "h5", "h6", "li", "blockquote", "pre"].includes(tag)) {
+        return el;
+      }
+      el = el.parentElement;
+    }
+    return null;
+};
 
 export function ReaderPage() {
   const { id } = useParams<{ id: string }>()
@@ -21,9 +53,13 @@ export function ReaderPage() {
   const isMenuInteractingRef = useRef(false)
   const [showNavbar, setShowNavbar] = useState(true)
   const { setTheme, themePreference } = useTheme()
+  const [readingPercent, setReadingPercent] = useState(0)
   
   // Selection State - stores position relative to container (not viewport)
   const [selectionPos, setSelectionPos] = useState<{ top: number; left: number } | null>(null)
+  
+  // Ref for debounced sync
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [tempHighlightRects, setTempHighlightRects] = useState<{ top: number; left: number; width: number; height: number }[]>([])
 
   // Clear temp highlights when menu closes
@@ -135,6 +171,111 @@ export function ReaderPage() {
       navigate('/')
     },
   })
+
+  // Restore Reading Progress
+  useEffect(() => {
+    if (!id || !link?.content) return; // Wait for content to allow proper scrolling
+
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const STORAGE_KEY = `reading-progress-${id}`;
+    
+    // Helper to attempt restoration from a progress object
+    const restoreFromProgress = (data: ReadingProgressResponse | { percent: number; text_position: string | null }) => {
+        const attemptScroll = (retries = 0) => {
+            if (retries > 40) return; // 20s timeout
+
+            // Check if content is truly ready (has height)
+            if (container.scrollHeight <= container.clientHeight) {
+                setTimeout(() => attemptScroll(retries + 1), 500);
+                return;
+            }
+
+            // Try text position first
+            if (data.text_position) {
+            try {
+                const { text, instance } = typeof data.text_position === 'string' ? JSON.parse(data.text_position) : data.text_position;
+                if (text) {
+                    const allWithText = Array.from(
+                    container.querySelectorAll("*")
+                    ).filter((e) => e.textContent?.trim().startsWith(text));
+                    
+                    const el = allWithText[instance || 0];
+                    if (el) {
+                    el.scrollIntoView({ block: "start", behavior: "auto" });
+                    return;
+                    }
+                }
+            } catch (e) {
+                    // ignore parse error 
+            }
+            }
+
+            // Fallback to percent
+            if (data.percent > 0) {
+            const scrollTop =
+                (container.scrollHeight - container.clientHeight) *
+                (data.percent / 100);
+            
+            // If the targeting scroll is very close to 0, ignore (top)
+            if (scrollTop > 10) {
+                container.scrollTo({ top: scrollTop, behavior: "auto" });
+            }
+            } else {
+                if (retries < 5) {
+                // Try a few more times even if percent is 0 just in case text_position appears
+                setTimeout(() => attemptScroll(retries + 1), 500); 
+                }
+            }
+        };
+        attemptScroll();
+    };
+
+    // 1. Try Local Storage First
+    const localDataArg = localStorage.getItem(STORAGE_KEY);
+    if (localDataArg) {
+        try {
+            const localData = JSON.parse(localDataArg);
+            restoreFromProgress(localData);
+            setReadingPercent(localData.percent || 0);
+            
+            // Still fetch from API to update local if needed (background sync)
+            api.getReadingProgress(Number(id)).then(remoteData => {
+                 if (remoteData && remoteData.updated_at > (localData.updated_at || 0)) {
+                      // Remote is newer, update local and restore? 
+                      // For now, let's respect local as "latest interaction" if it exists,
+                      // unless we want to enforce sync. 
+                      // User asked for: "local storage provide the position if re open the page" -> implies local is truth.
+                 }
+            }).catch(() => {});
+            return;
+        } catch (e) {
+            // Invalid local data, fall through to API
+        }
+    }
+
+    // 2. Fallback to API
+    const fetchProgress = async () => {
+      try {
+        const response = await api.getReadingProgress(Number(id));
+        if (response) {
+            restoreFromProgress(response);
+            setReadingPercent(response.percent);
+            // Update local storage to match remote
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                percent: response.percent,
+                text_position: response.text_position,
+                updated_at: response.updated_at
+            }));
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    fetchProgress();
+  }, [id, link?.content]);
 
   // Handle Selection on mouse up (like v1)
   const handleMouseUp = (e: React.MouseEvent) => {
@@ -265,32 +406,113 @@ export function ReaderPage() {
   }
 
 
-  // Hide navbar on scroll down, show on scroll up
+  // Hide navbar on scroll down, show on scroll up and track progress
   useEffect(() => {
     const container = scrollRef.current
-    if (!container) return
+    if (!container || !link) return
+
+    const scheduleSync = (data: ReadingProgressUpdate) => {
+        if (syncTimeoutRef.current) {
+            clearTimeout(syncTimeoutRef.current);
+        }
+        syncTimeoutRef.current = setTimeout(() => {
+            api.updateReadingProgress(data).then(() => {
+                // Invalidate links query to update progress bar on main page
+                queryClient.invalidateQueries({ queryKey: ['links'] })
+            }).catch(() => {});
+        }, 1000);
+    };
+
+    const saveProgress = () => {
+        if (!container || !link) return;
+        
+        const height = container.scrollHeight - container.clientHeight;
+        if (height <= 0) return;
+
+        const percent = (container.scrollTop / height) * 100;
+        const anchorEl = getFirstVisibleElement(container);
+        const textPosition = anchorEl ? getTextAnchor(container, anchorEl) : null;
+        
+        const data = {
+            link_id: link.id,
+            percent,
+            text_position: textPosition ? JSON.stringify(textPosition) : null,
+            text_quote: null,
+            css_selector: null,
+            updated_at: new Date().toISOString()
+        };
+
+        // 1. Save to Local Storage Immediately
+        const STORAGE_KEY = `reading-progress-${link.id}`;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        setReadingPercent(percent);
+
+        // 2. Schedule Background Sync
+        scheduleSync({
+            link_id: link.id,
+            percent,
+            text_position: data.text_position,
+            text_quote: null,
+            css_selector: null
+        });
+    };
 
     const onScroll = () => {
       const st = container.scrollTop
       const diff = st - lastScrollTop.current
       
-      // Ignore small movements - this creates an "accumulator" effect for slow scrolls
-      if (Math.abs(diff) < 10) return
-      
-      if (diff > 0) {
-        setShowNavbar(false)
-        setSelectionPos(null)
-        setActiveHighlight(null)
+      // Ignore small movements
+      if (Math.abs(diff) < 10) {
+          // pass
       } else {
-        setShowNavbar(true)
+        if (diff > 0) {
+            setShowNavbar(false)
+            setSelectionPos(null)
+            setActiveHighlight(null)
+        } else {
+            setShowNavbar(true)
+        }
+        lastScrollTop.current = st <= 0 ? 0 : st
       }
-      // Only update lastScrollTop when threshold is crossed
-      lastScrollTop.current = st <= 0 ? 0 : st
+      
+      // Reading Progress Logic
+      const height = container.scrollHeight - container.clientHeight
+      if (height > 0) {
+          saveProgress();
+      }
     }
-
+    
     container.addEventListener('scroll', onScroll, { passive: true })
-    return () => container.removeEventListener('scroll', onScroll)
-  }, []) // eslint-disable-line
+    window.addEventListener("beforeunload", saveProgress)
+    
+    return () => {
+        container.removeEventListener('scroll', onScroll)
+        window.removeEventListener("beforeunload", saveProgress)
+        // Flush any pending syncs on unmount
+        if (syncTimeoutRef.current) {
+            clearTimeout(syncTimeoutRef.current);
+            // Verify if we need to force push on unmount? 
+            // The previous logic had a flush.
+            // If we clear timeout, we skip the sync. 
+            // But we call saveProgress() below which schedules a new sync.
+            // Actually, on unmount we want to FIRE the sync immediately if pending, or just fire one final sync.
+        }
+        // Force a final sync immediately (bypassing debounce)
+        const height = container.scrollHeight - container.clientHeight;
+        if (height > 0) {
+            const percent = (container.scrollTop / height) * 100;
+            const anchorEl = getFirstVisibleElement(container);
+            const textPosition = anchorEl ? getTextAnchor(container, anchorEl) : null;
+             api.updateReadingProgress({
+                link_id: link.id,
+                percent,
+                text_position: textPosition ? JSON.stringify(textPosition) : null,
+                text_quote: null,
+                css_selector: null
+            }).catch(() => {});
+        }
+    }
+  }, [link]) // eslint-disable-line
 
   if (isLoading) {
     return (
@@ -324,6 +546,8 @@ export function ReaderPage() {
         onClose={() => setActiveHighlight(null)}
         onDelete={handleDeleteHighlight}
       />
+
+      <StickyReadingProgress percent={readingPercent} />
 
        <ReaderHighlightsList 
           isOpen={showHighlights}

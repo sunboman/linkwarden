@@ -113,11 +113,11 @@ export function LinkCard({ link }: LinkCardProps) {
           )}
 
           {/* Reading progress */}
-          {link.reading_progress > 0 && link.reading_progress < 1 && (
-            <div className="h-1 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+          {(link.reading_progress || 0) > 0 && (
+            <div className="h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden mt-2">
               <div
                 className="h-full bg-blue-500 rounded-full transition-all"
-                style={{ width: `${link.reading_progress * 100}%` }}
+                style={{ width: `${Math.min(link.reading_progress || 0, 100)}%` }}
               />
             </div>
           )}

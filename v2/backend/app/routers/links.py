@@ -5,14 +5,36 @@ from datetime import datetime
 from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import selectinload
 from sqlmodel import Session, and_, or_, select
 
 from ..database import get_session, commit_and_refresh
 from ..dependencies import get_current_user
-from ..models import Link, LinkTagLink, Tag, User
-from ..schemas import LinkCreate, LinkListResponse, LinkResponse, LinkUpdate
+from ..models import Link, LinkTagLink, Tag, User, ReadingProgress
+from ..schemas import LinkCreate, LinkListResponse, LinkResponse, LinkUpdate, TagResponse
 
 router = APIRouter(prefix="/links", tags=["links"])
+
+
+def enrich_link(link: Link, user_id: int) -> LinkResponse:
+    """Attach reading progress to link."""
+    progress = 0.0
+    for p in link.reading_progress_records:
+        if p.user_id == user_id:
+            progress = p.percent
+            break
+            
+    # Manually construct LinkResponse to handle reading_progress injection
+    tags = [TagResponse.model_validate(t) for t in link.tags]
+    
+    return LinkResponse(
+        **link.model_dump(),
+        tags=tags,
+        reading_progress=progress
+    )
+
+
+
 
 
 @router.post("", response_model=LinkResponse, status_code=status.HTTP_201_CREATED)
@@ -43,8 +65,8 @@ async def create_link(
             link.tags.append(tag)
     
     commit_and_refresh(session, link)
-    
-    return link
+    commit_and_refresh(session, link)
+    return enrich_link(link, current_user.id)
 
 
 @router.get("", response_model=LinkListResponse)
@@ -85,7 +107,12 @@ async def list_links(
     
     # Apply pagination
     statement = statement.offset(cursor).limit(limit)
+    # Eager load reading progress
+    statement = statement.options(selectinload(Link.reading_progress_records))
     links = session.exec(statement).all()
+    
+    # Enrich links
+    links = [enrich_link(link, current_user.id) for link in links]
     
     next_cursor = cursor + limit if cursor + limit < total else None
     
@@ -105,7 +132,7 @@ async def get_link(
     """Get a specific link."""
     statement = select(Link).where(
         and_(Link.id == link_id, Link.user_id == current_user.id)
-    )
+    ).options(selectinload(Link.reading_progress_records))
     link = session.exec(statement).first()
     
     if not link:
@@ -114,7 +141,7 @@ async def get_link(
             detail="Link not found",
         )
     
-    return link
+    return enrich_link(link, current_user.id)
 
 
 @router.put("/{link_id}", response_model=LinkResponse)
@@ -127,7 +154,7 @@ async def update_link(
     """Update a link."""
     statement = select(Link).where(
         and_(Link.id == link_id, Link.user_id == current_user.id)
-    )
+    ).options(selectinload(Link.reading_progress_records))
     link = session.exec(statement).first()
     
     if not link:
@@ -159,7 +186,7 @@ async def update_link(
     
     commit_and_refresh(session, link)
     
-    return link
+    return enrich_link(link, current_user.id)
 
 
 @router.delete("/{link_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -226,7 +253,7 @@ async def refresh_link(
     """Re-queue a link for archiving (clears existing archive data)."""
     statement = select(Link).where(
         and_(Link.id == link_id, Link.user_id == current_user.id)
-    )
+    ).options(selectinload(Link.reading_progress_records))
     link = session.exec(statement).first()
     
     if not link:
@@ -264,4 +291,4 @@ async def refresh_link(
     
     commit_and_refresh(session, link)
     
-    return link
+    return enrich_link(link, current_user.id)

@@ -30,6 +30,7 @@ class User(SQLModel, table=True):
     
     # Relationships
     links: list["Link"] = Relationship(back_populates="user")
+    reading_progress: list["ReadingProgress"] = Relationship(back_populates="user")
 
 
 class Tag(SQLModel, table=True):
@@ -76,4 +77,23 @@ class Link(SQLModel, table=True):
     
     # Reading progress
     is_archived: bool = Field(default=False)
-    reading_progress: float = Field(default=0.0)  # 0.0 to 1.0
+    
+    reading_progress_records: list["ReadingProgress"] = Relationship(back_populates="link")
+
+
+class ReadingProgress(SQLModel, table=True):
+    """Reading progress model."""
+    
+    __tablename__ = "reading_progress"
+    
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.id")
+    link_id: int = Field(foreign_key="links.id")
+    percent: float = Field(default=0.0)
+    text_quote: Optional[str] = None
+    text_position: Optional[str] = None
+    css_selector: Optional[str] = None
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    
+    user: User = Relationship(back_populates="reading_progress")
+    link: Link = Relationship(back_populates="reading_progress_records")

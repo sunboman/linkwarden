@@ -1,4 +1,4 @@
-import type { Link, LinkListResponse } from '@/types'
+import type { Link, LinkListResponse, ReadingProgressResponse, ReadingProgressUpdate } from '@/types'
 
 const API_BASE = '/api/v1'
 
@@ -115,4 +115,26 @@ export const api = {
 		if (!res.ok) throw new Error('Failed to fetch tags')
 		return res.json()
 	},
+	async getReadingProgress(linkId: number): Promise<ReadingProgressResponse> {
+		const res = await fetch(`${API_BASE}/reading-progress/?linkId=${linkId}`, {
+			headers: getAuthHeader(),
+		})
+		if (!res.ok) throw new Error('Failed to fetch reading progress')
+		return res.json()
+	},
+
+	async updateReadingProgress(data: ReadingProgressUpdate): Promise<ReadingProgressResponse> {
+		const res = await fetch(`${API_BASE}/reading-progress/`, {
+			method: 'PUT',
+			keepalive: true,
+			headers: {
+				...getAuthHeader(),
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(data),
+		})
+		if (!res.ok) throw new Error('Failed to update reading progress')
+		return res.json()
+	},
 }
+

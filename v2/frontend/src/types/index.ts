@@ -16,6 +16,17 @@ export interface Link {
 	tags: Tag[]
 }
 
+export interface ReadingProgress {
+	percent: number
+	text_quote: string | null
+	text_position: string | null
+	css_selector: string | null
+	updated_at: string
+}
+
+export type ReadingProgressUpdate = Omit<ReadingProgress, 'updated_at'> & { link_id: number }
+export type ReadingProgressResponse = ReadingProgress
+
 export interface Tag {
 	id: number
 	name: string

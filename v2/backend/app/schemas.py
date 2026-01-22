@@ -57,6 +57,9 @@ class TagResponse(BaseModel):
     id: int
     name: str
 
+    class Config:
+        from_attributes = True
+
 
 class LinkResponse(BaseModel):
     """Schema for link response."""
@@ -85,3 +88,23 @@ class LinkListResponse(BaseModel):
     links: list[LinkResponse]
     total: int
     cursor: Optional[int] = None
+
+
+# Reading Progress schemas
+class ReadingProgressBase(BaseModel):
+    """Base schema for reading progress."""
+    percent: float
+    text_quote: Optional[str] = None
+    text_position: Optional[str] = None
+    css_selector: Optional[str] = None
+
+
+class ReadingProgressUpdate(ReadingProgressBase):
+    """Schema for updating reading progress."""
+    link_id: int
+
+
+class ReadingProgressResponse(ReadingProgressBase):
+    """Schema for reading progress response."""
+    updated_at: datetime
+
