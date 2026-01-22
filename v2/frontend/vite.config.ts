@@ -37,7 +37,11 @@ export default defineConfig({
 				]
 			},
 			workbox: {
-				globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+				globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+				// Exclude large logo files from precaching
+				globIgnores: ['**/logo_*.png', '**/icon.png'],
+				// Increase limit for any remaining large files
+				maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10 MiB
 				runtimeCaching: [
 					{
 						urlPattern: /^https:\/\/api\./i,

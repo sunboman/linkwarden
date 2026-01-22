@@ -2,6 +2,7 @@
 .PHONY: backend-install backend-dev-install backend-run backend-test backend-lint backend-format backend-clean
 .PHONY: worker-install worker-dev-install worker-browsers worker-run worker-test worker-lint worker-format worker-clean
 .PHONY: frontend-install frontend-run frontend-build frontend-lint frontend-clean
+.PHONY: prod-build prod-up prod-down prod-logs prod-deploy
 
 # Colors for output
 CYAN := \033[36m
@@ -141,3 +142,22 @@ frontend-lint:  ## Run frontend linter
 
 frontend-clean:  ## Clean frontend build artifacts
 	cd frontend && rm -rf node_modules dist .vite
+
+# ============================================================================
+# Production Commands
+# ============================================================================
+
+prod-build:  ## Build production Docker image
+	docker compose -f docker-compose.prod.yml build
+
+prod-up:  ## Start production containers
+	docker compose -f docker-compose.prod.yml up -d
+
+prod-down:  ## Stop production containers
+	docker compose -f docker-compose.prod.yml down
+
+prod-logs:  ## View production logs
+	docker compose -f docker-compose.prod.yml logs -f
+
+prod-deploy:  ## Full production deployment (build + start)
+	./deploy.sh --build
