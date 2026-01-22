@@ -69,10 +69,22 @@ export function ReaderPage() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   // Reader Settings
-  const [settings, setSettings] = useState<ReaderSettings>(() => {
+  const [settings, setSettings] = useState<Omit<ReaderSettings, 'theme'>>(() => {
     const saved = localStorage.getItem('reader-settings')
-    const defaults: ReaderSettings = { font: 'sans', fontSize: 100, lineHeight: 1.6, lineWidth: 'normal', theme: themePreference }
-    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults
+    // Default settings without theme (theme is managed by useTheme)
+    const defaults: Omit<ReaderSettings, 'theme'> = { font: 'sans', fontSize: 100, lineHeight: 1.6, lineWidth: 'normal' }
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved)
+            // Remove theme from parsed settings if it exists
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { theme, ...rest } = parsed
+            return { ...defaults, ...rest }
+        } catch (e) {
+            return defaults
+        }
+    }
+    return defaults
   })
 
   // ... effects ...
@@ -94,16 +106,10 @@ export function ReaderPage() {
       }
   }
 
+  // Persist settings (excluding theme)
   useEffect(() => {
     localStorage.setItem('reader-settings', JSON.stringify(settings))
-    if (settings.theme !== themePreference) {
-        setTheme(settings.theme)
-    }
-  }, [settings, setTheme, themePreference])
-
-  useEffect(() => {
-      setSettings(prev => prev.theme !== themePreference ? { ...prev, theme: themePreference } : prev)
-  }, [themePreference])
+  }, [settings])
 
 
   const { data: link, isLoading, error } = useQuery({
@@ -588,8 +594,14 @@ export function ReaderPage() {
           </button>
 
           <ReaderFormatOptions 
-            currentSettings={settings}
-            onSettingsChange={(newSettings) => setSettings(newSettings)}
+            currentSettings={{ ...settings, theme: themePreference }}
+            onSettingsChange={(newSettings) => {
+                const { theme, ...rest } = newSettings
+                if (theme !== themePreference) {
+                    setTheme(theme)
+                }
+                setSettings(rest)
+            }}
           />
         </div>
       </div>
