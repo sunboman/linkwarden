@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    env_file: .env
+    restart: always
+    volumes:
+      - ${DATA_DIR}/pgdata:/var/lib/postgresql/data
+  linkreader:
+    env_file: .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      - NEXTAUTH_URL_INTERNAL=http://127.0.0.1:3000/api/v1/auth
+    restart: always
+    build: . # uncomment to build from source
+    ports:
+      - ${PORT:-3031}:3000
+    labels:
+      - "homepage.group=Bookmarks"
+      - "homepage.name=Linkreader"
+      - "homepage.icon=/icons/linkreader.png"
+      - "homepage.href=http://${HOST}:${PORT:-3031}"
+      - "homepage.description=Self-hosted read-it-later app"
+    volumes:
+      - ${DATA_DIR}/data:/data/data
+    depends_on:
+      - postgres
+

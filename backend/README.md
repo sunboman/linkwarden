@@ -1,6 +1,6 @@
-# Linkwarden Backend v2
+# Michi Reader Backend
 
-FastAPI backend for Linkwarden v2.
+FastAPI backend for Michi Reader.
 
 ## Features
 
@@ -73,7 +73,7 @@ make clean        # Clean cache files
 
 ## Database
 
-The SQLite database is stored at `../data/linkwarden.db` (shared with worker).
+The SQLite database is stored at `../data/michireader.db` (shared with worker).
 
 Schema:
 - `users` - User accounts

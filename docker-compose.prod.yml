@@ -2,14 +2,14 @@
 # All services in a single container with nginx reverse proxy
 
 services:
-  linkwarden:
+  michi-reader:
     build:
       context: .
       dockerfile: Dockerfile.prod
     container_name: michi-reader
     restart: unless-stopped
     ports:
-      - "${PORT:-3031}:80"
+      - "${PORT:-3032}:80"
     environment:
       # Data directory (inside container)
       - DATA_DIR=/app/data
@@ -30,7 +30,7 @@ services:
       - "homepage.group=Bookmarks"
       - "homepage.name=Michi Reader"
       - "homepage.icon=/icons/michi-reader.png"
-      - "homepage.href=http://${HOST:-localhost}:${PORT:-3031}"
+      - "homepage.href=http://${HOST:-localhost}:${PORT:-3032}"
       - "homepage.description=Self-hosted bookmark manager"
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost/health"]

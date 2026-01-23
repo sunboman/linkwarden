@@ -6,7 +6,7 @@ set -e
 
 # Defaults
 BUILD=false
-PORT=${PORT:-3031}
+PORT=${PORT:-3032}
 DATA_DIR="${DATA_DIR:-$HOME/.michi_reader}"
 
 # Parse arguments

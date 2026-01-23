@@ -1,4 +1,4 @@
-# Linkwarden Worker v2
+# Michireader Worker v2
 
 Background worker for archiving links using Playwright and Readability.
 
@@ -52,7 +52,7 @@ make worker-run
 Edit `.env` file:
 
 ```bash
-DATABASE_URL=sqlite:///../data/linkwarden.db
+DATABASE_URL=sqlite:///../data/michireader.db
 POLL_INTERVAL=5          # Seconds between polls
 MAX_RETRIES=3            # Not yet implemented
 SCREENSHOT_DIR=../data/screenshots

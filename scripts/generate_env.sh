@@ -51,7 +51,7 @@ ALGORITHM=${ALGORITHM:-HS256}
 ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-43200}
 
 # Server
-PORT=${PORT:-3031}
+PORT=${PORT:-3032}
 HOST=${HOST:-localhost}
 
 # Data (Host Path)
@@ -61,7 +61,7 @@ DATA_DIR=${DATA_DIR:-./data}
 DATABASE_URL=sqlite:////app/data/michireader.db
 
 # CORS
-CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3031}
+CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3032}
 
 # Worker Settings
 POLL_INTERVAL=${POLL_INTERVAL:-5}

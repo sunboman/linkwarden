@@ -1,1 +1,1 @@
-"""Worker package for Linkwarden v2."""
+"""Worker package for Michireader"""

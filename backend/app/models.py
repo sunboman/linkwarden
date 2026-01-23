@@ -1,5 +1,5 @@
 """
-Database models for Linkwarden.
+Database models for Michireader.
 """
 from datetime import datetime
 from typing import Optional
