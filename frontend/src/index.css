@@ -24,11 +24,6 @@
     @apply text-neutral-900 dark:text-neutral-100;
     @apply antialiased;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-    /* Safe area insets for iOS */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
   }
 
   /* Smooth scrolling on iOS */
@@ -139,5 +134,38 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Safe area utilities */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  .mb-safe {
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+
+  .mt-safe {
+    margin-top: env(safe-area-inset-top);
+  }
+
+  .h-safe-bottom {
+    height: env(safe-area-inset-bottom);
+  }
+
+  .bottom-safe {
+    bottom: env(safe-area-inset-bottom);
   }
 }

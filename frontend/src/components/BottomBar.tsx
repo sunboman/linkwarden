@@ -27,7 +27,7 @@ export function BottomBar() {
 
   return (
     <>
-      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-lg border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-around z-50 pb-safe">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 box-content bg-white/80 dark:bg-neutral-900/80 backdrop-blur-lg border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-around z-50 pb-safe">
         <NavItem
           icon={Link2}
           label="Links"

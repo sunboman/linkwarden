@@ -105,7 +105,7 @@ export function Navbar() {
   const CurrentThemeIcon = currentTheme.icon
 
   return (
-    <nav className="h-16 flex items-center justify-between px-4 gap-2 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-900/80 backdrop-blur-md">
+    <nav className="h-16 box-content pt-safe flex items-center justify-between px-4 gap-2 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-900/80 backdrop-blur-md">
       {/* 1. Icon on the Left */}
       <img 
         src="/icon.png" 

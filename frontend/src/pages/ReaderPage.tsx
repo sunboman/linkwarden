@@ -567,7 +567,7 @@ export function ReaderPage() {
         className={`fixed top-0 left-0 right-0 z-20 transition-all duration-300 ease-in-out
                    ${showNavbar ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}`}
       >
-        <div className="glass-nav h-14 flex items-center gap-2 px-3">
+        <div className="glass-nav h-14 box-content flex items-center gap-2 px-3">
           <button
             onClick={() => navigate(-1)}
             className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10"
@@ -667,7 +667,7 @@ export function ReaderPage() {
           />
         <article 
             onClick={handleArticleClick}
-            className={`${getWidthClass()} reader-content prose prose-neutral dark:prose-invert mx-auto px-4 py-8 pt-20 ${getFontClass()} transition-all duration-300`} 
+            className={`${getWidthClass()} reader-content prose prose-neutral dark:prose-invert mx-auto px-4 py-8 pt-20 mt-safe ${getFontClass()} transition-all duration-300`} 
             style={{ 
                 '--reader-font-size': `${settings.fontSize / 100}rem`, 
                 '--reader-line-height': settings.lineHeight 
@@ -725,7 +725,7 @@ export function ReaderPage() {
       {/* Floating Action Pill - bottom center, hides on scroll */}
       <div
         className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 px-3 py-2 rounded-full
-                   glass-card shadow-lg transition-all duration-300 ease-in-out
+                   glass-card shadow-lg transition-all duration-300 ease-in-out mb-safe
                    ${showNavbar ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'}`}
       >
 
