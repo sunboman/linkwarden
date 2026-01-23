@@ -9,7 +9,6 @@ on:
 env:
   COMPOSE_PROJECT_NAME: michi-reader
   PORT: 3032
-  DATA_DIR: /home/runner/michi_reader # Adjust for self-hosted path if needed, or rely on script defaults
 
 jobs:
   checkout:
