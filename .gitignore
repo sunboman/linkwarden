@@ -1,61 +1,55 @@
-# dependencies
+# General
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Dependencies
 node_modules
-/.pnp
+.pnp
 .pnp.js
 .yarn/install-state.gz
 
-# testing
-/coverage
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv
+venv/
+*.so
+.Python
+env/
+*.db-shm
+*.db-wal
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
 
-# next.js
-.next
-/out/
+# Frontend
+dist/
+build/
+coverage/
+.fs_cache
+.npm
 
-# production
-/build
+# Database
+*.sqlite3
+*.db
+data/
 
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
 
-# env files
-.env*.local
-.env
-
-# vercel
-.vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-# tests
-/apps/web/tests
-/apps/web/test-results/
-/apps/web/blob-report/
-/apps/web/playwright-report/
-/apps/web/playwright/.cache/
-/apps/web/playwright/.auth/
-
-# docker
-pgdata
-certificates
-
-# generated files and folders
-/data
-v2/data
-/data.ms
-meilisearch
-meili_data
+# IDEs
 .idea
-prisma/dev.db
-.turbo
+.vscode
+*.swp
+*.swo
 
-service-account-file.json
-dist/
+# Project Specific
+screenshots/

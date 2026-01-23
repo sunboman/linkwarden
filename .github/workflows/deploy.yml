@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 env:
-  COMPOSE_PROJECT_NAME: linkreader
+  COMPOSE_PROJECT_NAME: michi-reader
 
 jobs:
   checkout:
@@ -22,8 +22,7 @@ jobs:
     steps:
       - name: Cleanup Docker resources
         run: |
-          chmod +x ./scripts/cleanup.sh
-          ./scripts/cleanup.sh
+          make prod-down || true
 
   build:
     runs-on: self-hosted
@@ -31,8 +30,7 @@ jobs:
     steps:
       - name: Build Docker images
         run: |
-          chmod +x ./scripts/build.sh
-          ./scripts/build.sh
+          make prod-build
 
   deploy:
     runs-on: self-hosted
@@ -40,6 +38,5 @@ jobs:
     steps:
       - name: Deploy service
         run: |
-          chmod +x ./scripts/deploy.sh
-          ./scripts/deploy.sh
+          make prod-deploy
 

@@ -1,0 +1,131 @@
+# Michi Reader Production Dockerfile
+# All-in-one container with nginx, backend, worker, and frontend
+
+# =============================================================================
+# Stage 1: Frontend Builder
+# =============================================================================
+FROM node:22-alpine AS frontend-builder
+
+WORKDIR /app/frontend
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm ci --ignore-scripts
+
+# Copy source and build
+COPY frontend/ ./
+RUN npm run build
+
+# =============================================================================
+# Stage 2: Production Image
+# =============================================================================
+FROM python:3.11-slim-bookworm AS production
+
+# Install system dependencies: nginx, supervisor, curl, build tools, and Playwright deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nginx \
+    supervisor \
+    curl \
+    build-essential \
+    # Playwright browser dependencies
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libdbus-1-3 \
+    libxkbcommon0 \
+    libatspi2.0-0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
+    libpango-1.0-0 \
+    libcairo2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv for fast dependency management
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    ENVIRONMENT=production \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
+# Create app directory structure
+WORKDIR /app
+
+# Copy frontend static files
+COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
+
+# =============================================================================
+# Install Backend Dependencies
+# =============================================================================
+WORKDIR /app/backend
+
+# Copy backend source
+COPY backend/pyproject.toml ./
+COPY backend/uv.lock* ./
+COPY backend/app ./app
+
+# Install backend dependencies
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --no-dev
+
+# =============================================================================
+# Install Worker Dependencies
+# =============================================================================
+WORKDIR /app/worker
+
+# Copy worker source
+COPY worker/pyproject.toml ./
+COPY worker/uv.lock* ./
+COPY worker/worker ./worker
+
+# Install worker dependencies
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --no-dev
+
+# Install Playwright browsers
+RUN .venv/bin/playwright install chromium
+
+# Download Readability.js
+RUN mkdir -p worker/scripts && \
+    curl -sL "https://cdn.jsdelivr.net/npm/@mozilla/readability@latest/Readability.min.js" \
+    -o worker/scripts/Readability.min.js
+
+# =============================================================================
+# Final Setup
+# =============================================================================
+WORKDIR /app
+
+# Copy migrations
+COPY migrations /app/migrations
+
+# Create data directory
+RUN mkdir -p /app/data/screenshots && \
+    chmod -R 755 /app/data
+
+# Copy configuration files
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Remove default nginx site
+RUN rm -f /etc/nginx/sites-enabled/default
+
+# Expose port
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -sf http://localhost/health || exit 1
+
+# Start supervisor (manages nginx, backend, worker)
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
