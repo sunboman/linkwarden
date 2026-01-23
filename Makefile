@@ -150,17 +150,16 @@ frontend-clean:  ## Clean frontend build artifacts
 # Production Commands
 # ============================================================================
 
+prod-cleanup:  ## Cleanup unused Docker images
+	./scripts/docker_cleanup.sh
+
+prod-setup:  ## Setup production environment (dirs, .env)
+	./scripts/prod_setup.sh
+
 prod-build:  ## Build production Docker image
 	docker compose -f docker-compose.prod.yml build
 
-prod-up:  ## Start production containers
-	docker compose -f docker-compose.prod.yml up -d
+prod-start:  ## Restart production containers
+	./scripts/prod_start.sh
 
-prod-down:  ## Stop production containers
-	docker compose -f docker-compose.prod.yml down
-
-prod-logs:  ## View production logs
-	docker compose -f docker-compose.prod.yml logs -f
-
-prod-deploy:  ## Full production deployment (build + start)
-	./deploy.sh --build
+prod-deploy: prod-setup prod-build prod-start  ## Full production deployment sequence

@@ -8,6 +8,8 @@ on:
 
 env:
   COMPOSE_PROJECT_NAME: michi-reader
+  PORT: 3032
+  DATA_DIR: /home/runner/michi_reader # Adjust for self-hosted path if needed, or rely on script defaults
 
 jobs:
   checkout:
@@ -20,23 +22,27 @@ jobs:
     runs-on: self-hosted
     needs: checkout
     steps:
-      - name: Cleanup Docker resources
-        run: |
-          make prod-down || true
+      - name: Cleanup Docker images
+        run: make prod-cleanup
 
-  build:
+  setup:
     runs-on: self-hosted
     needs: cleanup
     steps:
+      - name: Setup Environment
+        run: make prod-setup
+
+  build:
+    runs-on: self-hosted
+    needs: setup
+    steps:
       - name: Build Docker images
-        run: |
-          make prod-build
+        run: make prod-build
 
   deploy:
     runs-on: self-hosted
     needs: build
     steps:
       - name: Deploy service
-        run: |
-          make prod-deploy
+        run: make prod-start
 
