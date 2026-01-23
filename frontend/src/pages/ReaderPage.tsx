@@ -72,7 +72,7 @@ export function ReaderPage() {
   const [settings, setSettings] = useState<Omit<ReaderSettings, 'theme'>>(() => {
     const saved = localStorage.getItem('reader-settings')
     // Default settings without theme (theme is managed by useTheme)
-    const defaults: Omit<ReaderSettings, 'theme'> = { font: 'sans', fontSize: 100, lineHeight: 1.6, lineWidth: 'normal' }
+    const defaults: Omit<ReaderSettings, 'theme'> = { font: 'serif', fontSize: 112.5, lineHeight: 1.6, lineWidth: 'normal' }
     if (saved) {
         try {
             const parsed = JSON.parse(saved)

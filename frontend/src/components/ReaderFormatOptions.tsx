@@ -222,7 +222,7 @@ export function ReaderFormatOptions({ onSettingsChange, currentSettings }: Reade
 
               {/* Reset */}
               <button 
-                onClick={() => updateSettings({ font: 'sans', fontSize: 100, lineHeight: 1.6, lineWidth: 'normal' })}
+                onClick={() => updateSettings({ font: 'serif', fontSize: 112.5, lineHeight: 1.6, lineWidth: 'normal' })}
                 className="w-full flex items-center justify-center gap-2 py-2 text-sm text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
               >
                 <RotateCcw className="w-4 h-4" />
