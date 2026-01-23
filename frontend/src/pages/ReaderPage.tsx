@@ -283,36 +283,77 @@ export function ReaderPage() {
     fetchProgress();
   }, [id, link?.content]);
 
-  // Handle Selection on mouse up or touch end
-  const handleSelectionEnd = (e: SyntheticEvent) => {
-      // If interacting with menu (e.g. typing comment), ignore
-      if (isMenuInteractingRef.current) return
-      
-      // Don't handle if clicking on a highlight
-      const target = e.target as HTMLElement
-      if (target.closest('.highlight')) return
-      
-      const selection = window.getSelection()
-      if (!selection || selection.isCollapsed || !contentRef.current?.contains(selection.anchorNode)) {
-          return
-      }
-      
-      const range = selection.getRangeAt(0)
-      const rect = range.getBoundingClientRect()
-      const containerRect = containerRef.current?.getBoundingClientRect()
-      
-      if (!containerRect) return
-      
-      // Only show if selection is inside article
-      if (contentRef.current.contains(range.commonAncestorContainer)) {
-           // Clone range to preserve it
-           selectedRangeRef.current = range.cloneRange()
-           // Store position RELATIVE to container (for absolute positioning)
-           const relativeX = rect.left - containerRect.left + rect.width / 2
-           const relativeY = rect.top - containerRect.top
-           setSelectionPos({ top: relativeY, left: relativeX })
-      }
-  }
+  // Handle Selection Change
+  useEffect(() => {
+    const handleSelectionChange = () => {
+        // Debounce to allow selection to settle
+        if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current)
+        
+        // We use a separate timeout for selection vs progress sync? 
+        // Let's just use a local timeout here or a new ref
+        // Re-using syncTimeoutRef might overlap with progress sync if named poorly, 
+        // but syncTimeoutRef lines 62/420 is for *reading progress*. 
+        // Let's create a new Ref for selection debounce to be safe.
+        // Actually, let's just use a simple setTimeout inside without ref for now, 
+        // or add a new ref `selectionTimeoutRef`.
+    }
+  }, [])
+  
+  // Actually, I'll implement it cleaner:
+  
+  const selectionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const onSelectionChange = () => {
+        if (selectionTimeoutRef.current) clearTimeout(selectionTimeoutRef.current)
+        
+        selectionTimeoutRef.current = setTimeout(() => {
+            // If interacting with menu, ignore
+            if (isMenuInteractingRef.current) return
+
+            const selection = window.getSelection()
+            
+            // If no selection or collapsed (clicked/tapped without drag), clear menu
+            if (!selection || selection.isCollapsed) {
+                // Only clear if we aren't currently highlighting (handled by menu interaction)
+                // But usually clicking elsewhere clears selection.
+                // We should let the user clear it naturally.
+                // If we setSelectionPos(null) here, it closes the menu.
+                if (!isMenuInteractingRef.current) {
+                    // Check if we just clicked a highlight (this might race)
+                    // But highlight clicks are handled by onClick on article.
+                    // Let's verify.
+                    // setSelectionPos(null)
+                    // Actually, let's only set it if we ARE in the article.
+                }
+                return
+            }
+
+            if (!contentRef.current?.contains(selection.anchorNode)) return
+
+            // Get range
+            const range = selection.getRangeAt(0)
+            const rect = range.getBoundingClientRect()
+            const containerRect = containerRef.current?.getBoundingClientRect()
+
+            if (!containerRect) return
+
+            if (contentRef.current.contains(range.commonAncestorContainer)) {
+                selectedRangeRef.current = range.cloneRange()
+                const relativeX = rect.left - containerRect.left + rect.width / 2
+                const relativeY = rect.top - containerRect.top
+                setSelectionPos({ top: relativeY, left: relativeX })
+            }
+        }, 150) // 150ms debounce
+    }
+
+    document.addEventListener('selectionchange', onSelectionChange)
+    return () => {
+        document.removeEventListener('selectionchange', onSelectionChange)
+        if (selectionTimeoutRef.current) clearTimeout(selectionTimeoutRef.current)
+    }
+  }, [])
+
 
   // Highlights List toggle
   const [showHighlights, setShowHighlights] = useState(false)
@@ -633,7 +674,7 @@ export function ReaderPage() {
         className="h-screen overflow-y-auto"
       >
         {/* Container for absolute positioning of selection menu */}
-        <div ref={containerRef} className="relative" onMouseUp={handleSelectionEnd} onTouchEnd={handleSelectionEnd}>
+        <div ref={containerRef} className="relative" onMouseUp={() => {}} /* Handled by selectionchange */>
           {tempHighlightRects.map((rect, i) => (
             <div 
                 key={i} 

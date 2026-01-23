@@ -139,16 +139,20 @@ export function ReaderSelectionMenu({ position, onHighlight, onClose, onInteract
   )
 
   if (isMobile) {
-      // Mobile: Fixed Bottom Sheet
+      // Mobile: Floating Bottom Pill/Card
       return (
         <div 
             ref={menuRef}
-            className="fixed bottom-0 left-0 right-0 z-[100] pb-safe px-4 pt-2 bg-neutral-50/95 dark:bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] animate-in slide-in-from-bottom-10 duration-200"
-            onMouseDown={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+            className={`
+                fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] mb-safe 
+                bg-neutral-50/95 dark:bg-neutral-900/95 backdrop-blur-xl 
+                border border-neutral-200 dark:border-neutral-800 shadow-2xl 
+                animate-in slide-in-from-bottom-10 duration-200
+                ${mode === 'colors' ? 'rounded-full w-auto' : 'rounded-2xl w-[90%] max-w-md'}
+            `}
+            onMouseDown={(e) => e.stopPropagation()}
         >
-             <div className="mx-auto max-w-lg">
-                {mode === 'colors' ? <ColorsView /> : <NoteView />}
-             </div>
+             {mode === 'colors' ? <ColorsView /> : <NoteView />}
         </div>
       )
   }

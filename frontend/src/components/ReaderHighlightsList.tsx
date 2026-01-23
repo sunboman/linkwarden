@@ -57,7 +57,16 @@ export function ReaderHighlightsList({ isOpen, onClose, htmlContent, onJumpTo }:
     if (!isOpen) return null
 
     return (
-        <div className="fixed inset-y-0 right-0 z-30 w-80 bg-surface-light dark:bg-surface-dark border-l border-neutral-200 dark:border-neutral-800 shadow-2xl transform transition-transform duration-300 ease-in-out p-4 overflow-y-auto">
+        <>
+            {/* Backdrop */}
+            <div 
+                className="fixed inset-0 z-40 bg-black/20 dark:bg-black/50 backdrop-blur-sm animate-in fade-in"
+                onClick={onClose}
+                aria-hidden="true"
+            />
+            
+            {/* Sidebar */}
+            <div className="fixed inset-y-0 right-0 z-50 w-full md:w-80 bg-surface-light dark:bg-surface-dark border-l border-neutral-200 dark:border-neutral-800 shadow-2xl transform transition-transform duration-300 ease-in-out p-4 pt-safe pb-safe overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
                 <h3 className="font-semibold text-lg">Highlights</h3>
                 <button 
@@ -104,5 +113,6 @@ export function ReaderHighlightsList({ isOpen, onClose, htmlContent, onJumpTo }:
                 </div>
             )}
         </div>
+        </>
     )
 }
