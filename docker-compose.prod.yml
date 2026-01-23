@@ -31,7 +31,7 @@ services:
       - "homepage.name=Michi Reader"
       - "homepage.icon=/icons/michi-reader.png"
       - "homepage.href=http://${HOST:-localhost}:${PORT:-3032}"
-      - "homepage.description=Self-hosted bookmark manager"
+      - "homepage.description=Michi reader"
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost/health"]
       interval: 30s

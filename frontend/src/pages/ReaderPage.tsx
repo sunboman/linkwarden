@@ -1,6 +1,6 @@
 
 import { useParams, useNavigate } from 'react-router-dom'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type SyntheticEvent } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { ArrowLeft, ExternalLink, Archive, Loader2, Trash2, List } from 'lucide-react'
@@ -283,8 +283,8 @@ export function ReaderPage() {
     fetchProgress();
   }, [id, link?.content]);
 
-  // Handle Selection on mouse up (like v1)
-  const handleMouseUp = (e: React.MouseEvent) => {
+  // Handle Selection on mouse up or touch end
+  const handleSelectionEnd = (e: SyntheticEvent) => {
       // If interacting with menu (e.g. typing comment), ignore
       if (isMenuInteractingRef.current) return
       
@@ -633,7 +633,7 @@ export function ReaderPage() {
         className="h-screen overflow-y-auto"
       >
         {/* Container for absolute positioning of selection menu */}
-        <div ref={containerRef} className="relative" onMouseUp={handleMouseUp}>
+        <div ref={containerRef} className="relative" onMouseUp={handleSelectionEnd} onTouchEnd={handleSelectionEnd}>
           {tempHighlightRects.map((rect, i) => (
             <div 
                 key={i} 
